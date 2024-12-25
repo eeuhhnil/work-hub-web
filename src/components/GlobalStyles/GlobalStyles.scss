@@ -1,0 +1,76 @@
+@import "normalize.css";
+
+:root {
+  --white-color: #fff;
+  --black-color: #000;
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 100%;
+  --primary-color: #a1a1aa;
+  --hover-primary-color: #fafafa;
+  --accent: 240 4.8% 95.9%;
+  --card-foreground: 0 0% 98%;
+  --primary: 0 0% 98%;
+  --border: 240 3.7% 15.9%;
+  --muted-foreground: 240 5% 64.9%;
+  --muted: 240 3.7% 15.9%;
+  --border: 240 3.7% 15.9%;
+  --primary-foreground: 240 5.9% 10%;
+}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.border-color {
+  border-color: hsl(var(--border));
+}
+
+body {
+  // border-color: hsl(var(--border)) !important;
+  font-family: "Inter", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 500;
+  color: hsl(var(--primary));
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+a {
+  text-decoration: none;
+}
+
+ul,
+li {
+  list-style: none;
+}
+
+.container {
+  width: 100%;
+  margin-right: auto;
+  margin-left: auto;
+  padding-right: 10rem;
+  padding-left: 10rem;
+}
+
+.background-primary {
+  background-color: hsl(var(--background));
+}
+.text-card-foreground {
+  color: hsl(var(--card-foreground));
+}
+.bg-primary {
+  background-color: hsl(var(--primary));
+}
+.text-muted-foreground {
+  color: hsl(var(--muted-foreground));
+}
+.text-primary-foreground {
+  color: hsl(var(--primary-foreground));
+}
+.bg-muted {
+  background-color: hsl(var(--muted));
+}
+.bg-border {
+  background-color: hsl(var(--border));
+}
