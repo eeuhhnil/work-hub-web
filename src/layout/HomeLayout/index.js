@@ -1,7 +1,7 @@
 import Sidebar from "~/layout/Sidebar";
-import Header from "~/layout/components/Header/Header";
+import Header from "../components/Header/Header";
 
-function DefaultLayout({ children, layoutType }) {
+function HomeLayout({ children, layoutType }) {
   return (
     <div className="w-full min-h-screen">
       <Header />
@@ -14,4 +14,4 @@ function DefaultLayout({ children, layoutType }) {
   );
 }
 
-export default DefaultLayout;
+export default HomeLayout;

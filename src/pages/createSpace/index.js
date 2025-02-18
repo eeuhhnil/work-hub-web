@@ -1,35 +1,49 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 function CreateSpace() {
   const [nameSpace, setNameSpace] = useState("");
   const [message, setMessage] = useState("");
-  const [listSpaces, setListSpaces] = useState([]);
-  console.log(listSpaces);
+  const [spaces, setSpaces] = useState([]);
+
+  const navigate = useNavigate();
+
+  // Load danh sách spaces từ localStorage khi component mount
+  useEffect(() => {
+    const savedSpaces = localStorage.getItem("spaces");
+    if (savedSpaces) {
+      setSpaces(JSON.parse(savedSpaces));
+    }
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
     if (nameSpace.trim() === "") {
       setMessage("Space name cannot be empty");
       return;
     }
+
+    // Kiểm tra xem space đã tồn tại chưa
+    if (spaces.some((space) => space.name.toLowerCase() === nameSpace.toLowerCase())) {
+      setMessage("This space name already exists!");
+      return;
+    }
+
     const newSpace = { id: Date.now(), name: nameSpace };
-
-    const savedSpaces = localStorage.getItem("spaces");
-    const spaces = savedSpaces ? JSON.parse(savedSpaces) : [];
-
     const updatedSpaces = [...spaces, newSpace];
 
+    // Cập nhật localStorage và state
     localStorage.setItem("spaces", JSON.stringify(updatedSpaces));
-
-    setListSpaces(updatedSpaces);
+    setSpaces(updatedSpaces);
 
     setMessage("");
     alert(`Created space successfully: ${nameSpace}`);
     setNameSpace("");
+
+    navigate(`/space/${nameSpace}`);
   };
-  const handleInputChange = (e) => {
-    setNameSpace(e.target.value);
-  };
+
   return (
     <div className="w-full min-h-screen flex flex-col background-primary">
       <div className="w-full max-w-[500px] m-auto space-y-4">
@@ -42,19 +56,17 @@ function CreateSpace() {
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="lucide lucide-arrow-left"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="lucide lucide-arrow-left"
             >
               <path d="m12 19-7-7 7-7"></path>
               <path d="M19 12H5"></path>
             </svg>
           </span>
           <button className="text-white inline-flex h-[32px] w-[32px]">
-            <span className="">
-              <img className="rounded-full" src="https://lh3.googleusercontent.com/a/ACg8ocLqoP1Ry1bS2-3--afGlto9uzglhr2WPhbEH44xp29J5hVvGwU=s96-c" />
-            </span>
+            <img className="rounded-full" src="https://lh3.googleusercontent.com/a/ACg8ocLqoP1Ry1bS2-3--afGlto9uzglhr2WPhbEH44xp29J5hVvGwU=s96-c" alt="User" />
           </button>
         </div>
         <div className="border border-color rounded-md">
@@ -64,7 +76,7 @@ function CreateSpace() {
             </div>
           </div>
           <div className="p-6 pt-0 space-y-2">
-            <div className="text-sm text-muted-foreground">Space is place where you manage your documents and information. All at one place.</div>
+            <div className="text-sm text-muted-foreground">Space is a place where you manage your documents and information. All in one place.</div>
             <form className="space-y-4" onSubmit={handleSubmit}>
               <div className="grid gap-1">
                 <div className="space-y-2 px-1">
@@ -74,9 +86,9 @@ function CreateSpace() {
                       className="flex h-[36px] w-full border border-color bg-transparent rounded-md px-3 py-2 text-card-foreground"
                       placeholder="Space name..."
                       value={nameSpace}
-                      onChange={handleInputChange}
+                      onChange={(e) => setNameSpace(e.target.value)}
                     />
-                    {message && <div className=" text-red-500">{message}</div>}
+                    {message && <div className="text-red-500">{message}</div>}
                   </div>
                 </div>
               </div>

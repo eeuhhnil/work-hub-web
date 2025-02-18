@@ -35,7 +35,7 @@ function RegiterForm() {
                   <input className="px-3 py-2  border  border-color  background-primary placeholder: text-[15px] rounded-md" placeholder="Passowrd" />
                 </div>
                 <div>
-                  <button className=" text-[12px] border  border-color  background-primary w-full h-full px-3 py-3 rounded-md ">Forgot your password?</button>
+                  <button className=" text-[12px] border  border-color  background-primary w-full h-full px-3 py-3 rounded-md ">Create account</button>
                 </div>
                 <div className="bg-white text-[12px] text-black border  border-color  w-full h-full px-3 py-3 rounded-md text-center">Sign in with Email</div>
               </div>
