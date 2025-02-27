@@ -1,64 +1,107 @@
 import * as RadixDropdownMenu from "@radix-ui/react-dropdown-menu";
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 function SpaceDropdown() {
   const [listSpaces, setListSpaces] = useState([]);
+  const [selectedSpace, setSelectedSpace] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const savedSpaces = localStorage.getItem("spaces");
-    const spaces = savedSpaces ? JSON.parse(savedSpaces) : [];
-    setListSpaces(spaces);
+    const fetchSpaces = async () => {
+      try {
+        const token = localStorage.getItem("access_token");
+        const response = await fetch("http://localhost:3002/spaces", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Failed to fetch spaces");
+        }
+
+        const spaces = data.data.map(space => ({ id: space._id, name: space.name }));
+        setListSpaces(spaces);
+
+        // ✅ Lấy `selectedSpace` từ localStorage
+        const savedSpace = JSON.parse(localStorage.getItem("selectedSpace"));
+        if (savedSpace && spaces.some(space => space.id === savedSpace.id)) {
+          setSelectedSpace(savedSpace);
+        } else if (spaces.length > 0) {
+          setSelectedSpace(spaces[0]);
+        }
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSpaces();
   }, []);
 
+  const handleSelectSpace = (space) => {
+    localStorage.setItem("selectedSpace", JSON.stringify(space));
+    setSelectedSpace(space);
+    navigate(`/space/${space.id}`);
+  };
+
   return (
-    <RadixDropdownMenu.Root>
-      <RadixDropdownMenu.Trigger className="relative">
-        <button className="inline-flex items-center rounded-md border border-input border-color px-4 py-2 w-[150px] hover:bg-accent">
-          <p className="text-[12px]">space1</p>
-          <svg viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" className="ml-auto h-6 w-6 text-red-50">
-            <path
-              d="M4.93179 5.43179C4.75605 5.60753 4.75605 5.89245 4.93179 6.06819C5.10753 6.24392 5.39245 6.24392 5.56819 6.06819L7.49999 4.13638L9.43179 6.06819C9.60753 6.24392 9.89245 6.24392 10.0682 6.06819C10.2439 5.89245 10.2439 5.60753 10.0682 5.43179L7.81819 3.18179C7.73379 3.0974 7.61933 3.04999 7.49999 3.04999C7.38064 3.04999 7.26618 3.0974 7.18179 3.18179L4.93179 5.43179ZM10.0682 9.56819C10.2439 9.39245 10.2439 9.10753 10.0682 8.93179C9.89245 8.75606 9.60753 8.75606 9.43179 8.93179L7.49999 10.8636L5.56819 8.93179C5.39245 8.75606 5.10753 8.75606 4.93179 8.93179C4.75605 9.10753 4.75605 9.39245 4.93179 9.56819L7.18179 11.8182C7.35753 11.9939 7.64245 11.9939 7.81819 11.8182L10.0682 9.56819Z"
-              fill="currentColor"
-            ></path>
-          </svg>
-        </button>
-      </RadixDropdownMenu.Trigger>
-      <RadixDropdownMenu.Content data-side="right" data-align="start" className="border border-input border-color background-primary">
-        <div className="flex items-center border-b border-color px-3">
-          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" class="mr-2 h-4 w-4 shrink-0 opacity-50">
-            <path
-              d="M10 6.5C10 8.433 8.433 10 6.5 10C4.567 10 3 8.433 3 6.5C3 4.567 4.567 3 6.5 3C8.433 3 10 4.567 10 6.5ZM9.30884 10.0159C8.53901 10.6318 7.56251 11 6.5 11C4.01472 11 2 8.98528 2 6.5C2 4.01472 4.01472 2 6.5 2C8.98528 2 11 4.01472 11 6.5C11 7.56251 10.6318 8.53901 10.0159 9.30884L12.8536 12.1464C13.0488 12.3417 13.0488 12.6583 12.8536 12.8536C12.6583 13.0488 12.3417 13.0488 12.1464 12.8536L9.30884 10.0159Z"
-              fill="currentColor"
-              fill-rule="evenodd"
-              clip-rule="evenodd"
-            ></path>
-          </svg>
-          <input className="flex items-center h-full w-full bg-transparent py-3" placeholder="Search space ..." />
-        </div>
-        <div className=" px-2 py-1.5 text-muted-foreground">Teams</div>
-        {listSpaces.map((space) => (
-          <RadixDropdownMenu.Item key={space.id}>
-            <div className="px-2 py-1.5">
-              <span className="text-white">{space.name}</span>
-            </div>
-          </RadixDropdownMenu.Item>
-        ))}
-        <Link to="/boarding/new">
-          <div className="flex items-center border border-color px-2 hover:bg-accent">
-            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" class="mr-2 h-5 w-5">
+      <RadixDropdownMenu.Root>
+        <RadixDropdownMenu.Trigger className="relative">
+          <button className="inline-flex items-center rounded-md border border-input border-color px-4 py-2 w-[180px] hover:bg-accent shadow-md">
+            <span className="w-4 h-4 rounded-full bg-gradient-to-r from-purple-400 to-blue-500 mr-2"></span>
+            <p className="text-[14px] font-medium">{selectedSpace ? selectedSpace.name : "No Space Selected"}</p>
+            <svg viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" className="ml-auto h-6 w-6 text-gray-300">
               <path
-                d="M7.49991 0.876892C3.84222 0.876892 0.877075 3.84204 0.877075 7.49972C0.877075 11.1574 3.84222 14.1226 7.49991 14.1226C11.1576 14.1226 14.1227 11.1574 14.1227 7.49972C14.1227 3.84204 11.1576 0.876892 7.49991 0.876892ZM1.82707 7.49972C1.82707 4.36671 4.36689 1.82689 7.49991 1.82689C10.6329 1.82689 13.1727 4.36671 13.1727 7.49972C13.1727 10.6327 10.6329 13.1726 7.49991 13.1726C4.36689 13.1726 1.82707 10.6327 1.82707 7.49972ZM7.50003 4C7.77617 4 8.00003 4.22386 8.00003 4.5V7H10.5C10.7762 7 11 7.22386 11 7.5C11 7.77614 10.7762 8 10.5 8H8.00003V10.5C8.00003 10.7761 7.77617 11 7.50003 11C7.22389 11 7.00003 10.7761 7.00003 10.5V8H4.50003C4.22389 8 4.00003 7.77614 4.00003 7.5C4.00003 7.22386 4.22389 7 4.50003 7H7.00003V4.5C7.00003 4.22386 7.22389 4 7.50003 4Z"
-                fill="currentColor"
-                fill-rule="evenodd"
-                clip-rule="evenodd"
+                  d="M4.93179 5.43179C4.75605 5.60753 4.75605 5.89245 4.93179 6.06819C5.10753 6.24392 5.39245 6.24392 5.56819 6.06819L7.49999 4.13638L9.43179 6.06819C9.60753 6.24392 9.89245 6.24392 10.0682 6.06819C10.2439 5.89245 10.2439 5.60753 10.0682 5.43179L7.81819 3.18179C7.73379 3.0974 7.61933 3.04999 7.49999 3.04999C7.38064 3.04999 7.26618 3.0974 7.18179 3.18179L4.93179 5.43179Z"
+                  fill="currentColor"
               ></path>
             </svg>
-            <div className="flex items-center px-2 py-1.5 ">Create Space</div>
+          </button>
+        </RadixDropdownMenu.Trigger>
+
+        <RadixDropdownMenu.Content
+            className="border border-input border-color bg-[#1e1e2e] rounded-md shadow-lg mt-2 min-w-[200px] z-50 absolute right-0"
+            align="end"
+        >
+          <div className="px-2 py-2">
+            <p className="text-gray-400 text-sm mb-2">Teams</p>
+            {loading ? (
+                <p className="text-white text-center">Loading...</p>
+            ) : error ? (
+                <p className="text-red-500 text-center">{error}</p>
+            ) : listSpaces.length === 0 ? (
+                <p className="text-gray-400 text-center">No space available</p>
+            ) : (
+                listSpaces.map((space) => (
+                    <RadixDropdownMenu.Item key={space.id} onClick={() => handleSelectSpace(space)}>
+                      <div className="flex items-center px-3 py-2 cursor-pointer hover:bg-gray-700 rounded-md transition">
+                        <span className="w-4 h-4 rounded-full bg-gradient-to-r from-green-400 to-blue-500 mr-2"></span>
+                        <span className="text-white">{space.name}</span>
+                      </div>
+                    </RadixDropdownMenu.Item>
+                ))
+            )}
           </div>
-        </Link>
-      </RadixDropdownMenu.Content>
-    </RadixDropdownMenu.Root>
+
+          <div className="border-t border-gray-600 px-2 py-2">
+            <button
+                className="flex items-center w-full px-3 py-2 rounded-md bg-gray-800 hover:bg-gray-700 transition text-white"
+                onClick={() => navigate("/boarding/new")}
+            >
+              <span className="mr-2">➕</span> Create Space
+            </button>
+          </div>
+        </RadixDropdownMenu.Content>
+      </RadixDropdownMenu.Root>
   );
 }
 

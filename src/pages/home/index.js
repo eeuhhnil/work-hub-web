@@ -26,8 +26,8 @@ function Home() {
           <TaskStatistic title="Completed Tasks" count={5} icon={clockIcon} />
           <TaskStatistic title="Overdue Tasks" count={2} icon={clockIcon} />
         </div>
-        <div class="px-2">
-          <div data-orientation="horizontal" role="none" class="shrink-0 bg-border h-[1px] w-full"></div>
+        <div className="px-2">
+          <div data-orientation="horizontal" role="none" className="shrink-0 bg-border h-[1px] w-full"></div>
         </div>
       </div>
     </div>
