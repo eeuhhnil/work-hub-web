@@ -11,6 +11,7 @@ import UserProfile from "~/pages/UserProfile";
 import HomeLayout from "~/layout/HomeLayout";
 import DropdownItem from "~/pages/fggf";
 import Home from "~/pages/home";
+import Members from "~/pages/members";
 
 
 export const publicRoutes = [
@@ -20,6 +21,7 @@ export const publicRoutes = [
   { path: "/boarding", component: BoardingPage, layout: null },
   { path: "/boarding/new", component: CreateSpace, layout: null },
   { path: "/space/:spaceId",component: Home, layout: HomeLayout, layoutType: "home"},
+  { path: "/space/:spaceId/member",component: Members, layout: HeaderOnly},
   { path: "/project", component: Project, layout: HeaderOnly },
   { path: "/project/:projectId", component: ProjectLayout, layout: null },
   { path: "/aa", component: DropdownItem, layout: null },
