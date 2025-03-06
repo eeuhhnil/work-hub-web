@@ -22,6 +22,9 @@ export const publicRoutes = [
   { path: "/boarding/new", component: CreateSpace, layout: null },
   { path: "/space/:spaceId",component: Home, layout: HomeLayout, layoutType: "home"},
   { path: "/space/:spaceId/member",component: Members, layout: HeaderOnly},
+  { path: "/space/:spaceId/profile",component: UserProfile, layout: HeaderOnly},
+
+
   { path: "/project", component: Project, layout: HeaderOnly },
   { path: "/project/:projectId", component: ProjectLayout, layout: null },
   { path: "/aa", component: DropdownItem, layout: null },

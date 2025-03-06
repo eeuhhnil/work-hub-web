@@ -43,7 +43,7 @@ function SidebarLeftHome() {
         <span className="relative flex shrink-0 rounded-full w-[66px] h-[66px] cursor-pointer">
           <img
               className="aspect-square h-full w-full rounded-full"
-              src="https://lh3.googleusercontent.com/a/ACg8ocLqoP1Ry1bS2-3--afGlto9uzglhr2WPhbEH44xp29J5hVvGwU=s96-c"
+              src={user?.avatar}
               alt="User Avatar"
           />
         </span>
