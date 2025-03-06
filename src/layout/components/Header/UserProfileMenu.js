@@ -1,10 +1,12 @@
 import * as RadixDropdownMenu from "@radix-ui/react-dropdown-menu";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 function UserProfileMenu() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -36,11 +38,17 @@ function UserProfileMenu() {
     fetchUserProfile();
   }, []);
 
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    navigate("/login");
+  };
+
   return (
       <RadixDropdownMenu.Root>
         <RadixDropdownMenu.Trigger>
           <button className="h-[32px] w-[32px]">
-            <img className="rounded-full" src="https://lh3.googleusercontent.com/a/ACg8ocLqoP1Ry1bS2-3--afGlto9uzglhr2WPhbEH44xp29J5hVvGwU=s96-c" />
+            <img className="rounded-full" src="https://lh3.googleusercontent.com/a/ACg8ocLqoP1Ry1bS2-3--afGlto9uzglhr2WPhbEH44xp29J5hVvGwU=s96-c" alt="User" />
           </button>
         </RadixDropdownMenu.Trigger>
         <RadixDropdownMenu.Content className="background-primary border border-color rounded-md w-56 transform -translate-x-4">
@@ -65,7 +73,10 @@ function UserProfileMenu() {
           <div className="flex items-center px-2 py-1.5">Account Setting</div>
           <div className="flex items-center px-2 py-1.5">Switch Space</div>
           <div role="separator" aria-orientation="horizontal" className="-mx-1 my-1 h-px bg-muted"></div>
-          <div className="flex items-center px-2 py-1.5 cursor-pointer text-red-500">Log Out</div>
+
+          <div className="flex items-center px-2 py-1.5 cursor-pointer text-red-500" onClick={handleLogout}>
+            Log Out
+          </div>
         </RadixDropdownMenu.Content>
       </RadixDropdownMenu.Root>
   );
