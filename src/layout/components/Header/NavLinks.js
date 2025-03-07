@@ -7,7 +7,7 @@ function NavLinks() {
       <Link to={`/space/${spaceId}`} className="text-sm font-medium text-muted-foreground hover:text-[#fafafa] cursor-pointer">
         Home
       </Link>
-      <Link to={"/project"} className="text-sm font-medium text-muted-foreground hover:text-[#fafafa] cursor-pointer">
+      <Link to={`/space/${spaceId}/project`} className="text-sm font-medium text-muted-foreground hover:text-[#fafafa] cursor-pointer">
         Project
       </Link>
 

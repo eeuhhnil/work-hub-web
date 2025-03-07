@@ -9,9 +9,11 @@ import ProjectLayout from "~/layout/components/ProjectLayout";
 import HeaderOnly from "~/layout/HeaderOnly";
 import UserProfile from "~/pages/UserProfile";
 import HomeLayout from "~/layout/HomeLayout";
-import DropdownItem from "~/pages/fggf";
 import Home from "~/pages/home";
 import Members from "~/pages/members";
+import Setting from "~/pages/settings";
+import TaskBoard from "~/pages/Tasks/Board";
+import TaskList from "~/pages/Tasks/Lists";
 
 
 export const publicRoutes = [
@@ -21,13 +23,23 @@ export const publicRoutes = [
   { path: "/boarding", component: BoardingPage, layout: null },
   { path: "/boarding/new", component: CreateSpace, layout: null },
   { path: "/space/:spaceId",component: Home, layout: HomeLayout, layoutType: "home"},
-  { path: "/space/:spaceId/member",component: Members, layout: HeaderOnly},
+  { path: "/space/:spaceId/member", component: Members, layout: HeaderOnly, extraProps: { type: "space" } },
   { path: "/space/:spaceId/profile",component: UserProfile, layout: HeaderOnly},
+  { path: "/space/:spaceId/project",component: Project, layout: HeaderOnly},
+  { path: "/space/:spaceId/project/:projectId", component: ProjectLayout, layout: null},
+  { path: "space/:spaceId/project/:projectId/member", component: Members, layout: ProjectLayout, extraProps: { type: "project" } },
+  { path: "space/:spaceId/project/:projectId/setting", component: Setting, layout: ProjectLayout},
+  { path: "space/:spaceId/project/:projectId/taskBoard", component: TaskBoard, layout: ProjectLayout},
+  { path: "space/:spaceId/project/:projectId/taskList", component: TaskList, layout: ProjectLayout}
 
 
-  { path: "/project", component: Project, layout: HeaderOnly },
-  { path: "/project/:projectId", component: ProjectLayout, layout: null },
-  { path: "/aa", component: DropdownItem, layout: null },
-  { path: "/profile", component: UserProfile, layout: HeaderOnly },
+
+
+
+
+
+  // { path: "/project", component: Project, layout: HeaderOnly },
+  // { path: "/aa", component: DropdownItem, layout: null },
+  // { path: "/profile", component: UserProfile, layout: HeaderOnly },
 
 ];
