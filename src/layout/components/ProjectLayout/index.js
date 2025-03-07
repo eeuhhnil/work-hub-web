@@ -10,19 +10,12 @@ import Setting from "~/pages/settings";
 
 function ProjectLayout() {
   const { projectId } = useParams();
-  const [selectedTab, setSelectedTab] = useState("tasks");
+  const [selectedTab, setSelectedTab] = useState("members");
   const [viewMode, setViewMode] = useState("list");
 
   const taskComponent = useMemo(() => {
     return viewMode === "list" ? <TaskList /> : <TaskBoard />;
   }, [viewMode]);
-
-  const projects = JSON.parse(localStorage.getItem("projects")) || [];
-  const project = projects.find((p) => p.id === parseInt(projectId));
-
-  if (!project) {
-    return <div>Project not found</div>;
-  }
 
   return (
     <div className="w-full min-h-screen">
@@ -31,8 +24,8 @@ function ProjectLayout() {
         <SideBar selectedTab={selectedTab} onSelectTab={setSelectedTab} />
         {selectedTab === "tasks" && <SubSidebar viewMode={viewMode} setViewMode={setViewMode} />}
         <div className="content w-full">
-          {selectedTab === "tasks" && taskComponent}
           {selectedTab === "members" && <Members />}
+          {selectedTab === "tasks" && taskComponent}
           {selectedTab === "settings" && <Setting />}
         </div>
       </div>

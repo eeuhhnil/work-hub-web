@@ -1,12 +1,13 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import {fetchSpaceMembers, inviteMemberToSpace} from "~/api/spaceApi";
-import {getUserIdByEmail} from "~/api/userApi";
+import { fetchSpaceMembers, inviteMemberToSpace } from "~/api/spaceApi";
+import { getUserIdByEmail } from "~/api/userApi";
+import {fetchProjectMembers, inviteMemberToProject} from "~/api/projectMemberApi";
 
-
-function Members() {
-  const { spaceId } = useParams();
+function Members({ type }) {
+  const params = useParams();
+  const entityId = type === "space" ? params.spaceId : params.projectId; // ✅ Xác định ID tương ứng
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -16,7 +17,9 @@ function Members() {
   useEffect(() => {
     const loadMembers = async () => {
       try {
-        const membersData = await fetchSpaceMembers(spaceId);
+        const membersData = type === "space"
+            ? await fetchSpaceMembers(entityId) // ✅ Lấy thành viên Space
+            : await fetchProjectMembers(entityId); // ✅ Lấy thành viên Project
         setMembers(membersData);
       } catch (error) {
         console.error(error.message);
@@ -24,7 +27,7 @@ function Members() {
     };
 
     loadMembers();
-  }, [spaceId]);
+  }, [entityId, type]);
 
   const handleInviteMember = async (e) => {
     e.preventDefault();
@@ -39,13 +42,22 @@ function Members() {
 
     try {
       const userId = await getUserIdByEmail(email);
-      await inviteMemberToSpace(spaceId, userId);
+      console.log(userId);
+
+      if (type === "space") {
+        await inviteMemberToSpace(entityId, userId);
+      } else {
+        await inviteMemberToProject(entityId, userId);
+      }
 
       setMessage("Member added successfully!");
       setEmail("");
       setOpen(false);
 
-      const updatedMembers = await fetchSpaceMembers(spaceId);
+      const updatedMembers = type === "space"
+          ? await fetchSpaceMembers(entityId)
+          : await fetchProjectMembers(entityId);
+
       setMembers(updatedMembers);
     } catch (error) {
       setMessage(error.message);
@@ -61,7 +73,11 @@ function Members() {
             <div className="flex items-center w-full justify-between mb-6">
               <div>
                 <div className="font-bold text-xl">Members</div>
-                <p className="text-sm text-muted-foreground">Members can be added by project owners</p>
+                <p className="text-sm text-muted-foreground">
+                  {type === "space"
+                      ? "Members can be added by space owners"
+                      : "Members can be added by project owners"}
+                </p>
               </div>
 
               <Dialog.Root open={open} onOpenChange={setOpen}>
