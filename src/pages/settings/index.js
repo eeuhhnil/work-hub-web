@@ -13,7 +13,7 @@ function Setting() {
     const fetchProjectDetails = async () => {
       try {
         const token = localStorage.getItem("access_token");
-        const response = await fetch(`http://localhost:3002/projects/${projectId}`, {
+        const response = await fetch(`http://localhost:3000/projects/${projectId}`, {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -43,7 +43,7 @@ function Setting() {
   const handleUpdateProject = async () => {
     try {
       const token = localStorage.getItem("access_token");
-      const response = await fetch(`http://localhost:3002/projects/${projectId}`, {
+      const response = await fetch(`http://localhost:3000/projects/${projectId}`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,

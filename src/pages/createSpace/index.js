@@ -29,7 +29,7 @@ function CreateSpace() {
     try {
       const token = localStorage.getItem("access_token");
 
-      const response = await fetch("http://localhost:3002/spaces", {
+      const response = await fetch("http://localhost:3000/spaces", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

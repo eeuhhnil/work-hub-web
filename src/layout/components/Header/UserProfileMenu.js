@@ -16,7 +16,7 @@ function UserProfileMenu() {
       try {
         const token = localStorage.getItem("access_token");
 
-        const response = await fetch("http://localhost:3002/users/profile", {
+        const response = await fetch("http://localhost:3000/users/profile", {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -25,13 +25,13 @@ function UserProfileMenu() {
         });
 
         const data = await response.json();
-        console.log(data.data.avatar);
-
         if (!response.ok) {
           throw new Error(data.message || "Failed to fetch profile");
         }
 
         setUser(data.data);
+        localStorage.setItem("user_avatar", data.data.avatar || ""); // ✅ cache avatar
+
       } catch (err) {
         setError(err.message);
       } finally {
@@ -42,9 +42,12 @@ function UserProfileMenu() {
     fetchUserProfile();
   }, []);
 
+  const cachedAvatar = localStorage.getItem("user_avatar") || "";
+
   const handleLogout = () => {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
+    localStorage.removeItem("user_avatar");
     navigate("/login");
   };
 
@@ -52,7 +55,12 @@ function UserProfileMenu() {
       <RadixDropdownMenu.Root>
         <RadixDropdownMenu.Trigger>
           <button className="h-[32px] w-[32px]">
-            <img className="rounded-full" src={user?.avatar} alt="User" />
+            <img
+                className="rounded-full object-cover w-full h-full"
+                src={cachedAvatar || "/default-avatar.png"}
+                alt="User avatar"
+                onError={(e) => e.currentTarget.src = "/default-avatar.png"}
+            />
           </button>
         </RadixDropdownMenu.Trigger>
         <RadixDropdownMenu.Content className="background-primary border border-color rounded-md w-56 transform -translate-x-4">
@@ -87,3 +95,4 @@ function UserProfileMenu() {
 }
 
 export default UserProfileMenu;
+

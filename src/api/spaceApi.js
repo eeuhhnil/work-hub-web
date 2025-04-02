@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://localhost:3002";
+const API_BASE_URL = "http://localhost:3000";
 
 export const fetchSpaceMembers = async (spaceId) => {
     const token = localStorage.getItem("access_token");

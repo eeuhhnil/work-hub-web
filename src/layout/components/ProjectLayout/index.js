@@ -3,7 +3,6 @@ import SideBar from "~/layout/Sidebar/ProjectDetail";
 import Header from "../Header/Header";
 import SubSidebar from "~/layout/SubSidebar";
 import { useState, useMemo } from "react";
-import TaskBoard from "~/pages/Tasks/Board";
 import TaskList from "~/pages/Tasks/Lists";
 import Members from "~/pages/members";
 import Setting from "~/pages/settings";
@@ -14,7 +13,7 @@ function ProjectLayout() {
   const [viewMode, setViewMode] = useState("list");
 
   const taskComponent = useMemo(() => {
-    return viewMode === "list" ? <TaskList /> : <TaskBoard />;
+    return viewMode === "list" ? <TaskList /> : null
   }, [viewMode]);
 
   return (

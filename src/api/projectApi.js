@@ -2,7 +2,7 @@ export const createProject = async (spaceId, name, description = "") => {
     try {
         const token = localStorage.getItem("access_token");
 
-        const response = await fetch("http://localhost:3002/projects", {
+        const response = await fetch("http://localhost:3000/projects", {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -32,7 +32,7 @@ export const getProjects = async () => {
     try {
         const token = localStorage.getItem("access_token");
 
-        const response = await fetch("http://localhost:3002/projects", {
+        const response = await fetch("http://localhost:3000/projects", {
             method: "GET",
             headers: {
                 Authorization: `Bearer ${token}`,

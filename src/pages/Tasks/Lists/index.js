@@ -35,7 +35,7 @@ function TaskList() {
     setIsLoading(true);
     try {
       const token = localStorage.getItem("access_token");
-      const response = await fetch(`http://localhost:3002/tasks/${taskId}`, {
+      const response = await fetch(`http://localhost:3000/tasks/${taskId}`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -60,7 +60,7 @@ function TaskList() {
     const fetchTasks = async () => {
       try {
         const token = localStorage.getItem("access_token");
-        const response = await fetch(`http://localhost:3002/tasks?space=${spaceId}&project=${projectId}`, {
+        const response = await fetch(`http://localhost:3000/tasks?space=${spaceId}&project=${projectId}`, {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -86,7 +86,7 @@ function TaskList() {
 
     try {
       const token = localStorage.getItem("access_token");
-      const response = await fetch(`http://localhost:3002/tasks/${taskId}`, {
+      const response = await fetch(`http://localhost:3000/tasks/${taskId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -110,7 +110,7 @@ function TaskList() {
     const fetchMembers = async () => {
       try {
         const token = localStorage.getItem("access_token");
-        const response = await fetch(`http://localhost:3002/project?project=${projectId}`, {
+        const response = await fetch(`http://localhost:3000/project?project=${projectId}`, {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -154,7 +154,7 @@ function TaskList() {
       console.log("Data to be sent:", JSON.stringify(updatedTask, null, 2)); // Debug
 
       const token = localStorage.getItem("access_token");
-      const response = await fetch(`http://localhost:3002/tasks/${currentTask._id}`, {
+      const response = await fetch(`http://localhost:3000/tasks/${currentTask._id}`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -219,7 +219,7 @@ function TaskList() {
 
     try {
       const token = localStorage.getItem("access_token");
-      const response = await fetch("http://localhost:3002/tasks", {
+      const response = await fetch("http://localhost:3000/tasks", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

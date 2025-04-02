@@ -18,7 +18,7 @@ function LoginForm() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:3002/auth/login/local", {
+      const response = await fetch("http://localhost:3000/auth/login/local", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -47,6 +47,12 @@ function LoginForm() {
     }
   };
 
+  const handleGoogleLogin = () => {
+    window.location.href = "http://localhost:3000/auth/google";
+  }
+
+
+
   return (
       <div className="background-primary min-h-screen relative">
         <div className="grid min-h-screen">
@@ -69,7 +75,8 @@ function LoginForm() {
                 </p>
               </div>
               <div>
-                <button className="w-full border border-color px-3 py-3 text-[14px] font-medium rounded-md inline-flex justify-center items-center">
+                <button className="w-full border border-color px-3 py-3 text-[14px] font-medium rounded-md inline-flex justify-center items-center"
+                        onClick={handleGoogleLogin}>
                   <svg role="img" viewBox="0 0 24 24" className="mr-2 h-6 w-6">
                     <path
                         fill="currentColor"

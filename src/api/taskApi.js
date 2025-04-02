@@ -1,6 +1,6 @@
 // src/services/taskService.js
 
-const API_URL = "http://localhost:3002";
+const API_URL = "http://localhost:3000";
 
 const getToken = () => localStorage.getItem("access_token");
 

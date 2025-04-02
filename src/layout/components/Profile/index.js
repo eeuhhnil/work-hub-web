@@ -18,7 +18,7 @@ function Profile() {
       try {
         const token = localStorage.getItem("access_token");
 
-        const response = await fetch("http://localhost:3002/users/profile", {
+        const response = await fetch("http://localhost:3000/users/profile", {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -77,7 +77,7 @@ function Profile() {
       if (selectedFile) formData.append("file", selectedFile); // ✅ Nếu có ảnh mới
 
       // Gửi yêu cầu cập nhật profile
-      const response = await fetch("http://localhost:3002/users/profile", {
+      const response = await fetch("http://localhost:3000/users/profile", {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,

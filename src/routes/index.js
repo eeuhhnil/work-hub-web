@@ -12,7 +12,6 @@ import HomeLayout from "~/layout/HomeLayout";
 import Home from "~/pages/home";
 import Members from "~/pages/members";
 import Setting from "~/pages/settings";
-import TaskBoard from "~/pages/Tasks/Board";
 import TaskList from "~/pages/Tasks/Lists";
 
 
@@ -29,7 +28,6 @@ export const publicRoutes = [
   { path: "/space/:spaceId/project/:projectId", component: ProjectLayout, layout: null},
   { path: "space/:spaceId/project/:projectId/member", component: Members, layout: ProjectLayout, extraProps: { type: "project" } },
   { path: "space/:spaceId/project/:projectId/setting", component: Setting, layout: ProjectLayout},
-  { path: "space/:spaceId/project/:projectId/taskBoard", component: TaskBoard, layout: ProjectLayout},
   { path: "space/:spaceId/project/:projectId/taskList", component: TaskList, layout: ProjectLayout}
 
 
