@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import SpaceCard from "~/components/SpaceCard";
+import { API_CONFIG, apiRequest } from "~/config/api";
 
 function Boarding() {
     const [listSpaces, setListSpaces] = useState([]);
@@ -14,63 +15,63 @@ function Boarding() {
 
         const handleGoogleCallback = async (code) => {
             try {
-                const response = await fetch(`http://localhost:3000/auth/google/callback?code=${code}`, {
-                    method: "GET",
-                    credentials: "include",
-                });
+                const response = await fetch(
+                    `${API_CONFIG.BASE_URL}/auth/google/callback?code=${code}`,
+                    { method: "GET", credentials: "include" }
+                );
+
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.message || "Lỗi callback");
 
                 const { access_token, refresh_token } = data.data;
-
                 if (!access_token || !refresh_token) throw new Error("Thiếu token trả về");
 
                 localStorage.setItem("access_token", access_token);
                 localStorage.setItem("refresh_token", refresh_token);
 
-
-                fetchSpaces();
+                await fetchSpaces(access_token); // truyền token trực tiếp
             } catch (err) {
                 setError(err.message);
                 setLoading(false);
             }
         };
 
-        const fetchSpaces = async () => {
+        const fetchSpaces = async (token) => {
             try {
-                const token = localStorage.getItem("access_token");
-                const response = await fetch("http://localhost:3000/spaces", {
+                const data = await apiRequest(API_CONFIG.ENDPOINTS.SPACES.LIST, {
                     method: "GET",
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        "Content-Type": "application/json",
-                    },
+                    headers: token ? { Authorization: `Bearer ${token}` } : {},
                 });
 
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.message || "Failed to fetch spaces");
-
-                setListSpaces(data.data.map(space => ({ id: space._id, name: space.name })));
-            } catch (error) {
-                setError(error.message);
+                setListSpaces(
+                    data.data
+                        .filter(space => space != null) // Filter out null spaces
+                        .map((space) => ({
+                            id: space._id || space.id || "",
+                            name: space.name || "Unnamed space",
+                        }))
+                );
+            } catch (err) {
+                setError(err.message);
             } finally {
                 setLoading(false);
             }
         };
 
-        // ✅ Nếu có code từ Google thì xử lý callback trước
         if (code) {
             handleGoogleCallback(code);
         } else {
-            // ✅ Nếu không phải login google thì fetch space như cũ
-            fetchSpaces();
+            const token = localStorage.getItem("access_token");
+            fetchSpaces(token);
         }
     }, []);
 
     const handleSelectSpace = (space) => {
+        if (!space || !space.id) return; // an toàn
         localStorage.setItem("selectedSpace", JSON.stringify(space));
         navigate(`/space/${space.id}`);
     };
+
 
     return (
         <div className="w-full min-h-screen flex flex-col background-primary">

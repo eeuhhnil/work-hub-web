@@ -1,19 +1,21 @@
-import { useParams } from "react-router-dom";
+// import { useParams } from "react-router-dom";
 import SideBar from "~/layout/Sidebar/ProjectDetail";
 import Header from "../Header/Header";
 import SubSidebar from "~/layout/SubSidebar";
 import { useState, useMemo } from "react";
 import TaskList from "~/pages/Tasks/Lists";
+import TaskCalendar from "~/pages/Tasks/Calendar";
 import Members from "~/pages/members";
 import Setting from "~/pages/settings";
 
 function ProjectLayout() {
-  const { projectId } = useParams();
   const [selectedTab, setSelectedTab] = useState("members");
   const [viewMode, setViewMode] = useState("list");
 
   const taskComponent = useMemo(() => {
-    return viewMode === "list" ? <TaskList /> : null
+    if (viewMode === "list") return <TaskList />;
+    if (viewMode === "calendar") return <TaskCalendar />;
+    return null;
   }, [viewMode]);
 
   return (

@@ -1,5 +1,5 @@
 import SidebarLeftHome from "~/layout/Sidebar/Home/SidebarLeftHome";
-import SidebarRightHome from "~/layout/Sidebar/Home/SidebarRightHome";
+import SidebarRightHome from "~/layout/Sidebar/Home/SidebarRightHome_Simple";
 import SidebarLeftProject from "~/layout/Sidebar/Project/SidebarLeftProject";
 
 function Sidebar({ layoutType, position }) {

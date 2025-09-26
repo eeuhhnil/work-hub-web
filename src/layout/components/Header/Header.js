@@ -1,6 +1,7 @@
 import SpaceDropdown from "./SpaceDropdown";
 import NavLinks from "./NavLinks";
 import UserProfileMenu from "./UserProfileMenu";
+import { NotificationBell } from "../../../components/Notification";
 
 function Header() {
   return (
@@ -10,7 +11,10 @@ function Header() {
           <SpaceDropdown />
           <NavLinks />
         </div>
-        <UserProfileMenu />
+        <div className="flex items-center gap-4">
+          <NotificationBell />
+          <UserProfileMenu />
+        </div>
       </div>
     </div>
   );
