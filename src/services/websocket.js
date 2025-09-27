@@ -18,7 +18,14 @@ class WebSocketService {
       return;
     }
 
+    // Don't create new connection if already connecting/connected
+    if (this.socket && (this.socket.connected || this.socket.connecting)) {
+      console.log('🔄 Socket already connected/connecting, skipping...');
+      return;
+    }
+
     try {
+      console.log('🚀 Creating new WebSocket connection...');
       this.socket = io(API_CONFIG.BASE_URL, {
         transports: ['websocket', 'polling'],
         auth: {
@@ -34,11 +41,11 @@ class WebSocketService {
         reconnection: true,
         reconnectionAttempts: this.maxReconnectAttempts,
         reconnectionDelay: this.reconnectDelay,
-        timeout: 20000,
+        timeout: 10000, // Reduced timeout for faster connection
       });
 
       this.setupEventListeners();
-      
+
     } catch (error) {
       console.error('WebSocket connection error:', error);
     }
@@ -189,13 +196,26 @@ class WebSocketService {
   // Utility methods
   isSocketConnected() {
     const connected = this.isConnected && this.socket && this.socket.connected;
-    console.log('🔍 Connection check:', {
+    // Reduced logging for better performance
+    if (!connected) {
+      console.log('🔍 Connection check failed:', {
+        isConnected: this.isConnected,
+        hasSocket: !!this.socket,
+        socketConnected: this.socket ? this.socket.connected : false
+      });
+    }
+    return connected;
+  }
+
+  // Get connection status with more details
+  getConnectionStatus() {
+    return {
       isConnected: this.isConnected,
       hasSocket: !!this.socket,
       socketConnected: this.socket ? this.socket.connected : false,
-      result: connected
-    });
-    return connected;
+      socketId: this.socket ? this.socket.id : null,
+      reconnectAttempts: this.reconnectAttempts
+    };
   }
 
   getSocketId() {

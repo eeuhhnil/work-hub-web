@@ -14,7 +14,7 @@ function Members({ type }) {
   const [loading, setLoading] = useState(false);
   const [members, setMembers] = useState([]);
   const [open, setOpen] = useState(false);
-  const { refreshNotifications } = useNotifications();
+  const { refreshNotifications, refreshNotificationsWithSocket } = useNotifications();
 
   useEffect(() => {
     const loadMembers = async () => {
@@ -65,9 +65,8 @@ function Members({ type }) {
       setMembers(Array.isArray(membersData) ? membersData : []);
 
       // Refresh notifications để hiển thị thông báo mới ngay lập tức
-      setTimeout(() => {
-        refreshNotifications();
-      }, 1000);
+      console.log('🔄 Refreshing notifications after member addition...');
+      refreshNotificationsWithSocket();
     } catch (error) {
       setMessage(error.message);
     } finally {
@@ -97,6 +96,10 @@ function Members({ type }) {
 
       setMembers(Array.isArray(membersData) ? membersData : []);
       setMessage(`Member removed successfully from ${type}`);
+
+      // Refresh notifications after member removal
+      console.log('🔄 Refreshing notifications after member removal...');
+      refreshNotificationsWithSocket();
     } catch (error) {
       setMessage(error.message);
     }

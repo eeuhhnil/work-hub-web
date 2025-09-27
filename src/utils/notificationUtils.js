@@ -6,6 +6,7 @@ export const NotificationType = {
   // Space Member
   ADD_MEMBER_TO_SPACE: 'ADDED_MEMBER_TO_SPACE',
   REMOVE_MEMBER_FROM_SPACE: 'REMOVED_MEMBER_FROM_SPACE',
+  YOU_WERE_ADDED_TO_SPACE: 'YOU_WERE_ADDED_TO_SPACE',
 
   // Project
   UPDATE_PROJECT: 'UPDATED_PROJECT',
@@ -43,6 +44,9 @@ export const formatNotificationMessage = (notification) => {
     case NotificationType.ADD_MEMBER_TO_SPACE:
       return `${actor} added ${data.newMemberName || 'a member'} to space "${data.spaceName}"`;
 
+    case NotificationType.YOU_WERE_ADDED_TO_SPACE:
+      return `${actor} added you to space "${data.spaceName}"`;
+
     case NotificationType.REMOVE_MEMBER_FROM_SPACE:
       return `${actor} removed ${data.removedMemberName || 'a member'} from space "${data.spaceName}"`;
 
@@ -53,7 +57,7 @@ export const formatNotificationMessage = (notification) => {
 
     
     case NotificationType.YOU_WERE_ADDED_TO_PROJECT:
-      return `${actor} added ${data.newMemberName} to project "${data.projectName}"`;
+      return `${actor} added you to project "${data.projectName}"`;
 
     case NotificationType.YOU_WERE_REMOVED_FROM_PROJECT:
       return `${actor} removed you from project "${data.projectName}"`;
@@ -86,6 +90,7 @@ export const getNotificationIcon = (type) => {
   switch (type) {
     case NotificationType.UPDATE_SPACE:
     case NotificationType.ADD_MEMBER_TO_SPACE:
+    case NotificationType.YOU_WERE_ADDED_TO_SPACE:
     case NotificationType.REMOVE_MEMBER_FROM_SPACE:
       return 'building';
 

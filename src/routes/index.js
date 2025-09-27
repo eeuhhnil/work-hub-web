@@ -16,6 +16,8 @@ import TaskList from "~/pages/Tasks/Lists";
 import TaskCalendar from "~/pages/Tasks/Calendar";
 import ApiTest from "~/pages/test/ApiTest";
 import NotificationTest from "~/pages/test/NotificationTest";
+import SocketTest from "~/pages/test/SocketTest";
+import NotificationLogicTest from "~/pages/test/NotificationLogicTest";
 import Analytics from "~/pages/Analytics";
 
 // Public routes - không cần authentication
@@ -24,9 +26,9 @@ export const publicRoutes = [
   { path: "/login", component: Login, layout: null },
   { path: "/register", component: Register, layout: null },
   { path: "/test/api", component: ApiTest, layout: null },
+  { path: "/test/socket", component: SocketTest, layout: null },
 ];
 
-// Protected routes - cần authentication
 export const protectedRoutes = [
   { path: "/boarding", component: BoardingPage, layout: null },
   { path: "/spaces", component: BoardingPage, layout: null },
@@ -43,4 +45,6 @@ export const protectedRoutes = [
   { path: "/space/:spaceId/analytics", component: Analytics, layout: HeaderOnly},
   { path: "/space/:spaceId/project/:projectId/analytics", component: Analytics, layout: ProjectLayout},
   { path: "/test/notifications", component: NotificationTest, layout: HeaderOnly},
+  { path: "/test/socket", component: SocketTest, layout: HeaderOnly},
+  { path: "/test/notification-logic", component: NotificationLogicTest, layout: HeaderOnly},
 ];

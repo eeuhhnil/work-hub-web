@@ -4,6 +4,7 @@ import ProjectCard from "~/components/ProjectCard";
 import "./project.css";
 import {useParams} from "react-router-dom";
 import { getProjects, createProjectInSpace } from "~/api/projectApi";
+import { useNotifications } from "~/contexts/NotificationContext";
 
 function Project() {
   const [projects, setProjects] = useState([]);
@@ -13,6 +14,7 @@ function Project() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const { spaceId } = useParams();
+  const { refreshNotificationsWithSocket } = useNotifications();
 
   useEffect(() => {
     fetchProjects();
@@ -62,6 +64,10 @@ function Project() {
       setDescription("");
       setOpen(false);
       fetchProjects();
+
+      // Refresh notifications after project creation
+      console.log('🔄 Refreshing notifications after project creation...');
+      refreshNotificationsWithSocket();
     } catch (error) {
       console.error("Error creating project:", error);
       setMessage(error.message || "Failed to create project");

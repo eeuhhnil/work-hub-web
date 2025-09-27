@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
 import websocketService from '../services/websocket';
 import { apiRequest, API_CONFIG } from '../config/api';
+import { deduplicateNotifications, isDuplicateNotification, cleanOldNotifications } from '~/utils/notificationDeduplication';
 
 // Initial state
 const initialState = {
@@ -34,24 +35,25 @@ const notificationReducer = (state, action) => {
       return { ...state, error: action.payload, loading: false };
 
     case ActionTypes.SET_NOTIFICATIONS:
-      const unreadCount = action.payload.filter(n => !n.isRead).length;
+      // Deduplicate and clean notifications
+      const cleanedNotifications = cleanOldNotifications(deduplicateNotifications(action.payload));
+      const unreadCount = cleanedNotifications.filter(n => !n.isRead).length;
       return {
         ...state,
-        notifications: action.payload,
+        notifications: cleanedNotifications,
         unreadCount,
         loading: false,
         error: null,
       };
 
     case ActionTypes.ADD_NOTIFICATION:
-      // Check if notification already exists to prevent duplicates
-      const exists = state.notifications.some(n => n._id === action.payload._id);
-      if (exists) {
-        console.log('🔄 Notification already exists, skipping duplicate:', action.payload._id);
+      // Use utility function to check for duplicates
+      if (isDuplicateNotification(action.payload, state.notifications)) {
+        console.log('🔄 Duplicate notification detected, skipping:', action.payload._id);
         return state;
       }
 
-      const newNotifications = [action.payload, ...state.notifications];
+      const newNotifications = cleanOldNotifications([action.payload, ...state.notifications]);
       const newUnreadCount = newNotifications.filter(n => !n.isRead).length;
       console.log('➕ Adding new notification:', action.payload._id, 'Total:', newNotifications.length);
       return {
@@ -198,28 +200,17 @@ export const NotificationProvider = ({ children }) => {
 
     console.log('🚀 Initializing notification system...');
 
-    // Fetch initial notifications first
-    fetchNotifications();
-
-    // Setup WebSocket with a small delay to ensure API fetch completes first
-    setTimeout(() => {
-      console.log('🔌 Connecting to WebSocket...');
-
-      // Disconnect first if already connected to ensure clean connection
-      if (websocketService.isSocketConnected()) {
-        console.log('🔄 Disconnecting existing WebSocket connection...');
-        websocketService.disconnect();
-      }
-
-      websocketService.connect();
-    }, 500);
-
-    // Setup WebSocket event listeners
+    // Setup WebSocket event listeners FIRST (before connecting)
     console.log('🔧 Setting up WebSocket event listeners...');
     websocketService.on('notification', handleNewNotification);
     websocketService.on('connect', () => {
       console.log('🔌 WebSocket connect event received');
       handleConnectionChange(true);
+      // Fetch notifications after successful connection to get any missed ones
+      setTimeout(() => {
+        console.log('🔄 Fetching notifications after socket connection...');
+        fetchNotifications();
+      }, 100);
     });
     websocketService.on('disconnect', () => {
       console.log('❌ WebSocket disconnect event received');
@@ -227,14 +218,28 @@ export const NotificationProvider = ({ children }) => {
     });
     websocketService.on('unauthorized', handleUnauthorized);
 
-    // Check initial connection status after a short delay
+    // Fetch initial notifications
+    fetchNotifications();
+
+    // Connect WebSocket immediately (no delay)
+    console.log('🔌 Connecting to WebSocket immediately...');
+
+    // Disconnect first if already connected to ensure clean connection
+    if (websocketService.isSocketConnected()) {
+      console.log('🔄 Disconnecting existing WebSocket connection...');
+      websocketService.disconnect();
+    }
+
+    websocketService.connect();
+
+    // Check connection status with shorter delay
     setTimeout(() => {
       console.log('⏰ Checking initial connection status...');
       const connected = websocketService.updateConnectionStatus();
       if (connected) {
         handleConnectionChange(true);
       }
-    }, 1000);
+    }, 200);
 
     // Request notification permission
     if (Notification.permission === 'default') {
@@ -257,6 +262,52 @@ export const NotificationProvider = ({ children }) => {
     await fetchNotifications(spaceId);
   }, [fetchNotifications]);
 
+  // Wait for socket connection before proceeding with actions
+  const waitForSocketConnection = useCallback((timeout = 3000) => {
+    return new Promise((resolve) => {
+      if (websocketService.isSocketConnected()) {
+        console.log('✅ Socket already connected');
+        resolve(true);
+        return;
+      }
+
+      console.log('⏳ Waiting for socket connection...');
+      let attempts = 0;
+      const maxAttempts = timeout / 100;
+
+      const checkConnection = () => {
+        attempts++;
+        if (websocketService.isSocketConnected()) {
+          console.log('✅ Socket connected after waiting');
+          resolve(true);
+        } else if (attempts >= maxAttempts) {
+          console.log('⚠️ Socket connection timeout, proceeding anyway');
+          resolve(false);
+        } else {
+          setTimeout(checkConnection, 100);
+        }
+      };
+
+      checkConnection();
+    });
+  }, []);
+
+  // Enhanced refresh that ensures socket connection
+  const refreshNotificationsWithSocket = useCallback(async (spaceId = null) => {
+    console.log('🔄 Enhanced refresh with socket check...');
+
+    // Wait for socket connection first
+    await waitForSocketConnection(1000);
+
+    // Only refresh if socket is not connected (to avoid duplicates)
+    if (!websocketService.isSocketConnected()) {
+      console.log('🔄 Socket not connected, refreshing notifications from API...');
+      await refreshNotifications(spaceId);
+    } else {
+      console.log('✅ Socket connected, relying on real-time notifications');
+    }
+  }, [refreshNotifications, waitForSocketConnection]);
+
   // Context value
   const value = {
     ...state,
@@ -264,6 +315,8 @@ export const NotificationProvider = ({ children }) => {
     markAsRead,
     markAllAsRead,
     refreshNotifications,
+    refreshNotificationsWithSocket,
+    waitForSocketConnection,
   };
 
   return (

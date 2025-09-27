@@ -10,7 +10,7 @@ function TaskList() {
   const { projectId, spaceId } = useParams();
   console.log("TaskList params:", { projectId, spaceId }); // Debug log
   const [tasks, setTasks] = useState([]);
-  const { refreshNotifications } = useNotifications();
+  const { refreshNotifications, refreshNotificationsWithSocket, waitForSocketConnection } = useNotifications();
   const [task, setTask] = useState({
     name: "",
     description: "",
@@ -151,6 +151,11 @@ function TaskList() {
       // Xoá khỏi state
       setTasks(prevTasks => prevTasks.filter(task => task._id !== taskId));
       setMessage("Task deleted successfully!");
+
+      // Refresh notifications after task deletion
+      console.log('🔄 Refreshing notifications after task deletion...');
+      refreshNotificationsWithSocket();
+
       setTimeout(() => setMessage(""), 3000);
     } catch (error) {
       setMessage(error.message || "Failed to delete task");
@@ -284,9 +289,8 @@ function TaskList() {
       }
 
       // Refresh notifications để hiển thị thông báo mới ngay lập tức
-      setTimeout(() => {
-        refreshNotifications();
-      }, 1000);
+      console.log('🔄 Refreshing notifications after task update...');
+      refreshNotificationsWithSocket();
     } catch (error) {
       console.error("Error updating task:", error);
     } finally {
@@ -450,9 +454,8 @@ function TaskList() {
       setIsCreateModalOpen(false);
 
       // Refresh notifications để hiển thị thông báo mới ngay lập tức
-      setTimeout(() => {
-        refreshNotifications();
-      }, 1000);
+      console.log('🔄 Refreshing notifications after task creation...');
+      refreshNotificationsWithSocket();
 
       // Auto clear message after 3 seconds
       setTimeout(() => setMessage(""), 3000);

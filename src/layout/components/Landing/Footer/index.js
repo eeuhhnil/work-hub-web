@@ -1,5 +1,6 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFacebook, faInstagram } from "@fortawesome/free-brands-svg-icons";
+import { faGithub, faLinkedin } from "@fortawesome/free-brands-svg-icons";
+import { Link } from "react-router-dom";
 
 function Footer() {
   return (
@@ -12,12 +13,29 @@ function Footer() {
           <a className="text-muted-foreground  text-[16px] hover:text-[#fafafa] cursor-pointer">Terms of use</a>
         </div>
         <div className="flex gap-3 items-center">
-          <FontAwesomeIcon icon={faFacebook} className="text-white w-[25px] h-[25px]" />
-          <FontAwesomeIcon icon={faInstagram} className="text-white w-[25px] h-[25px]" />
+            <Link to="https://github.com/eeuhhnil"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                <FontAwesomeIcon
+                    icon={faGithub}
+                    className="text-white w-[25px] h-[25px]"
+                />
+            </Link>
+            <Link
+                to="https://www.linkedin.com/in/eeuhhnil/"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                <FontAwesomeIcon
+                    icon={faLinkedin}
+                    className="text-white w-[25px] h-[25px]"
+                />
+            </Link>
         </div>
       </div>
       <p className="text-muted-foreground text-[14px] mt-5">
-        With powerful features tailored to meet the needs of modern teams, Stable ensures you can manage tasks, team members, and documents with ease. Choose Stable for an efficient, collaborative,
+        With powerful features tailored to meet the needs of modern teams, WorkHub ensures you can manage tasks, team members, and documents with ease. Choose Stable for an efficient, collaborative,
         and organized work environment that helps your team reach its full potential.
       </p>
     </div>
