@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate để điều hướng
+import { useNavigate } from "react-router-dom";
 import banner5 from "~/assets/images/landingpage/img5.png";
+import { apiRequest } from "~/config/api";
+import API_CONFIG from "~/config/api";
 
 function LoginForm() {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -18,27 +20,21 @@ function LoginForm() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:3002/auth/login/local", {
+      const data = await apiRequest(API_CONFIG.ENDPOINTS.AUTH.LOGIN, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ email: formData.email, password: formData.password }),
       });
 
-      const data = await response.json();
-      console.log(data);
-      const { access_token, refresh_token } = data.access_token ? data : data.data;
-
-      console.log("Access Token:", access_token);
-      console.log("Refresh Token:", refresh_token);
-
-      if (!response.ok) {
-        throw new Error(data.message || "Đăng nhập thất bại!");
+      const { access_token, refresh_token } = data.data || {};
+      if (!access_token || !refresh_token) {
+        throw new Error('Missing tokens');
       }
-      alert("Dang nhap thanh cong")
 
-      localStorage.setItem("access_token", access_token);
-      localStorage.setItem("refresh_token", refresh_token);
+      // Lưu tokens vào localStorage
+      localStorage.setItem('access_token', access_token);
+      localStorage.setItem('refresh_token', refresh_token);
 
+      alert("Login successful!");
       navigate("/boarding");
     } catch (err) {
       setError(err.message);
@@ -46,6 +42,10 @@ function LoginForm() {
       setLoading(false);
     }
   };
+
+
+
+
 
   return (
       <div className="background-primary min-h-screen relative">
@@ -69,7 +69,8 @@ function LoginForm() {
                 </p>
               </div>
               <div>
-                <button className="w-full border border-color px-3 py-3 text-[14px] font-medium rounded-md inline-flex justify-center items-center">
+                <button className="w-full border border-color px-3 py-3 text-[14px] font-medium rounded-md inline-flex justify-center items-center"
+                        onClick={() => window.location.href = 'http://localhost:3000/auth/google'}>
                   <svg role="img" viewBox="0 0 24 24" className="mr-2 h-6 w-6">
                     <path
                         fill="currentColor"

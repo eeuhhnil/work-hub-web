@@ -1,6 +1,8 @@
 import * as RadixDropdownMenu from "@radix-ui/react-dropdown-menu";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_CONFIG, apiRequest } from "~/config/api";
+import { useNotifications } from "~/contexts/NotificationContext";
 
 function SpaceDropdown() {
   const [listSpaces, setListSpaces] = useState([]);
@@ -8,26 +10,21 @@ function SpaceDropdown() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { refreshNotifications } = useNotifications();
 
   useEffect(() => {
     const fetchSpaces = async () => {
       try {
-        const token = localStorage.getItem("access_token");
-        const response = await fetch("http://localhost:3002/spaces", {
+        const data = await apiRequest(API_CONFIG.ENDPOINTS.SPACES.LIST, {
           method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
         });
 
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.message || "Failed to fetch spaces");
-        }
-
-        const spaces = data.data.map(space => ({ id: space._id, name: space.name }));
+        const spaces = data.data
+          .filter(space => space != null) // Filter out null spaces
+          .map(space => ({
+            id: space._id || space.id,
+            name: space.name || 'Unnamed Space'
+          }));
         setListSpaces(spaces);
 
         // ✅ Lấy `selectedSpace` từ localStorage
@@ -47,9 +44,14 @@ function SpaceDropdown() {
     fetchSpaces();
   }, []);
 
-  const handleSelectSpace = (space) => {
+  const handleSelectSpace = async (space) => {
     localStorage.setItem("selectedSpace", JSON.stringify(space));
     setSelectedSpace(space);
+
+    // Refresh notifications for the new space
+    console.log('🔄 Refreshing notifications for new space:', space.id);
+    await refreshNotifications(space.id);
+
     navigate(`/space/${space.id}`);
   };
 

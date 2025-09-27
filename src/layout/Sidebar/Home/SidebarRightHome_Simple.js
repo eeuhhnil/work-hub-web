@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { fetchSpaceMembers } from "~/api/spaceApi";
 import { getUserProjectsProgress } from "~/api/projectApi";
 
-function SidebarRightHome() {
+function SidebarRightHomeSimple() {
   const { spaceId } = useParams();
   const navigate = useNavigate();
   const [teamMembers, setTeamMembers] = useState([]);
@@ -22,12 +22,42 @@ function SidebarRightHome() {
         setLoading(true);
         setError(null);
         console.log("Loading data for spaceId:", spaceId);
-
+        
         // Check authentication
         const token = localStorage.getItem('access_token');
         console.log("Access token exists:", !!token);
         if (!token) {
           throw new Error("No access token found. Please login again.");
+        }
+
+        // Fetch user projects with progress - lấy dữ liệu thực từ API
+        console.log("Fetching user projects with progress...");
+        const projectsData = await getUserProjectsProgress();
+        console.log("Raw user projects with progress data received:", projectsData);
+
+        if (projectsData && Array.isArray(projectsData) && projectsData.length > 0) {
+          // Filter projects theo space nếu có spaceId
+          const filteredProjects = spaceId
+            ? projectsData.filter(project => project.space === spaceId)
+            : projectsData;
+
+          const formattedProjects = filteredProjects.map((project, index) => {
+            // Lấy progress từ API (đã có dạng "33%") và chuyển thành số
+            const progressValue = parseInt(project.progress) || 0;
+            return {
+              id: project._id,
+              name: project.name,
+              progress: progressValue, // Sử dụng progress thực từ API
+              color: index % 2 === 0 ? "bg-blue-500" : "bg-green-500",
+              members: project.members || 0
+            };
+          });
+
+          console.log("✅ User projects formatted successfully:", formattedProjects);
+          setOngoingProjects(formattedProjects);
+        } else {
+          console.log("❌ No user projects data or empty array");
+          setOngoingProjects([]);
         }
 
         // Fetch space members
@@ -36,39 +66,8 @@ function SidebarRightHome() {
         console.log("Members data received:", membersData);
         setTeamMembers(Array.isArray(membersData) ? membersData : []);
 
-        // Fetch user projects with progress - lấy dữ liệu thực từ API
-        console.log("Fetching user projects with progress...");
-        const projectsData = await getUserProjectsProgress();
-        console.log("Raw user projects with progress data received:", projectsData);
-        console.log("Is projectsData an array?", Array.isArray(projectsData));
-        console.log("ProjectsData length:", projectsData?.length);
-
-        // Filter projects theo spaceId nếu có
-        const filteredProjects = spaceId
-          ? projectsData.filter(project => project.space === spaceId)
-          : projectsData;
-
-        const formattedProjects = Array.isArray(filteredProjects) ? filteredProjects.map((project, index) => {
-          console.log("Processing user project:", project);
-          // Lấy progress từ API (đã có dạng "33%") và chuyển thành số
-          const progressValue = parseInt(project.progress) || 0;
-          return {
-            id: project._id,
-            name: project.name,
-            progress: progressValue, // Sử dụng progress thực từ API
-            color: index % 2 === 0 ? "bg-blue-500" : "bg-green-500", // Alternate colors
-            members: project.members || 0
-          };
-        }) : [];
-
-        console.log("Formatted user projects:", formattedProjects);
-        console.log("Formatted projects length:", formattedProjects.length);
-        setOngoingProjects(formattedProjects);
-
       } catch (error) {
-        console.error("Error loading sidebar data:", error);
-        console.error("Error details:", error.message);
-        console.error("Error stack:", error.stack);
+        console.error("❌ Error loading sidebar data:", error);
         setError(error.message || "Failed to load data");
         setTeamMembers([]);
         setOngoingProjects([]);
@@ -85,7 +84,6 @@ function SidebarRightHome() {
   const handleProjectClick = (projectId) => {
     navigate(`/space/${spaceId}/project/${projectId}`);
   };
-
 
   return (
     <div className="max-w-[280px] w-full border-l border-color">
@@ -219,4 +217,5 @@ function SidebarRightHome() {
   );
 }
 
-export default SidebarRightHome;
+// Export as SidebarRightHome để có thể thay thế
+export default SidebarRightHomeSimple;

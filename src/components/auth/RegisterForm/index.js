@@ -1,6 +1,8 @@
 import { useState } from "react";
 import banner5 from "~/assets/images/landingpage/img5.png";
 import {useNavigate} from "react-router-dom";
+import { apiRequest } from "~/config/api";
+import API_CONFIG from "~/config/api";
 
 function RegisterForm() {
   const [formData, setFormData] = useState({
@@ -26,20 +28,12 @@ function RegisterForm() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:3002/auth/register", {
+      const data = await apiRequest(API_CONFIG.ENDPOINTS.AUTH.REGISTER, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify(formData),
       });
 
-      const data = await response.json();
-      console.log(data)
-
-      if (!response.ok) {
-        throw new Error(data.message || "Registration failed!");
-      }
+      console.log("Register response:", data);
 
       setSuccess("Registration successful!");
       setTimeout(()=>{

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_CONFIG, apiRequest } from "~/config/api";
 
 function CreateSpace() {
   const [formData, setFormData] = useState({
@@ -27,22 +28,11 @@ function CreateSpace() {
     }
 
     try {
-      const token = localStorage.getItem("access_token");
-
-      const response = await fetch("http://localhost:3002/spaces", {
+      const data = await apiRequest(API_CONFIG.ENDPOINTS.SPACES.CREATE, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(formData), // ✅ Gửi cả name và description
+        body: JSON.stringify(formData),
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to create space");
-      }
       navigate(`/space/${data.data._id}`);
     } catch (error) {
       setMessage(error.message);

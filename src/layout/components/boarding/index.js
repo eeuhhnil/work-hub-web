@@ -12,7 +12,7 @@ function Boarding() {
     const fetchSpaces = async () => {
       try {
         const token = localStorage.getItem("access_token");
-        const response = await fetch("http://localhost:3002/spaces", {
+        const response = await fetch("http://localhost:3000/spaces", {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -26,7 +26,12 @@ function Boarding() {
           throw new Error(data.message || "Failed to fetch spaces");
         }
 
-        setListSpaces(data.data.map(space => ({ id: space._id, name: space.name })));
+        setListSpaces(data.data
+          .filter(space => space != null) // Filter out null spaces
+          .map(space => ({
+            id: space._id || space.id,
+            name: space.name || 'Unnamed Space'
+          })));
       } catch (error) {
         setError(error.message);
       } finally {

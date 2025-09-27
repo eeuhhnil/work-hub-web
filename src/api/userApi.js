@@ -1,45 +1,31 @@
-const API_BASE_URL = "http://localhost:3002";
+import { apiRequest } from "~/config/api";
+import API_CONFIG from "~/config/api";
 
 export const getUserProfile = async () => {
     try {
-        const token = localStorage.getItem("access_token");
-        const response = await fetch(`${API_BASE_URL}/users/profile`, {
+        const data = await apiRequest(API_CONFIG.ENDPOINTS.USERS.PROFILE, {
             method: "GET",
-            headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-            },
         });
-
-        const data = await response.json();
-        if (!response.ok) {
-            throw new Error(data.message || "Failed to get user profile.");
-        }
-
         return data.data;
     } catch (error) {
-        throw new Error(error.message);
+        console.error("Error getting user profile:", error);
+        throw error;
     }
 };
 
 export const getUserIdByEmail = async (email) => {
     try {
-        const token = localStorage.getItem("access_token");
-        const response = await fetch(`${API_BASE_URL}/users/find?email=${email}`, {
+        const data = await apiRequest(`${API_CONFIG.ENDPOINTS.USERS.FIND}?email=${email}`, {
             method: "GET",
-            headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-            },
         });
 
-        const data = await response.json();
-        if (!response.ok || !data.data || !data.data._id) {
+        if (!data.data || !data.data._id) {
             throw new Error("User not found.");
         }
 
         return data.data._id;
     } catch (error) {
-        throw new Error(error.message);
+        console.error("Error getting user by email:", error);
+        throw error;
     }
 };

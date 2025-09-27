@@ -1,18 +1,20 @@
 import * as Dialog from "@radix-ui/react-dialog";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { fetchSpaceMembers, inviteMemberToSpace } from "~/api/spaceApi";
-import { getUserIdByEmail } from "~/api/userApi";
-import {fetchProjectMembers, inviteMemberToProject} from "~/api/projectMemberApi";
+import { fetchSpaceMembers, inviteMemberToSpace, removeMemberFromSpace } from "~/api/spaceApi";
+import {fetchProjectMembers, inviteMemberToProject, removeMemberFromProject} from "~/api/projectMemberApi";
+import { useNotifications } from "~/contexts/NotificationContext";
 
 function Members({ type }) {
   const params = useParams();
-  const entityId = type === "space" ? params.spaceId : params.projectId; // ✅ Xác định ID tương ứng
+  const entityId = type === "space" ? params.spaceId : params.projectId;
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [members, setMembers] = useState([]);
   const [open, setOpen] = useState(false);
+  const { refreshNotifications, refreshNotificationsWithSocket } = useNotifications();
 
   useEffect(() => {
     const loadMembers = async () => {
@@ -20,13 +22,18 @@ function Members({ type }) {
         const membersData = type === "space"
             ? await fetchSpaceMembers(entityId) // ✅ Lấy thành viên Space
             : await fetchProjectMembers(entityId); // ✅ Lấy thành viên Project
-        setMembers(membersData);
+
+        // Đảm bảo membersData là array
+        setMembers(Array.isArray(membersData) ? membersData : []);
       } catch (error) {
         console.error(error.message);
+        setMembers([]); // Set empty array nếu có lỗi
       }
     };
 
-    loadMembers();
+    if (entityId) {
+      loadMembers();
+    }
   }, [entityId, type]);
 
   const handleInviteMember = async (e) => {
@@ -41,30 +48,63 @@ function Members({ type }) {
     }
 
     try {
-      const userId = await getUserIdByEmail(email);
-      console.log(userId);
-
-      if (type === "space") {
-        await inviteMemberToSpace(entityId, userId);
-      } else {
-        await inviteMemberToProject(entityId, userId);
-      }
+      // Gọi API backend, gửi email trực tiếp
+      await (type === "space"
+          ? inviteMemberToSpace(entityId, email)
+          : inviteMemberToProject(entityId, email));
 
       setMessage("Member added successfully!");
       setEmail("");
       setOpen(false);
 
-      const updatedMembers = type === "space"
+      // Reload danh sách members để đảm bảo có đầy đủ thông tin user
+      const membersData = type === "space"
           ? await fetchSpaceMembers(entityId)
           : await fetchProjectMembers(entityId);
 
-      setMembers(updatedMembers);
+      setMembers(Array.isArray(membersData) ? membersData : []);
+
+      // Refresh notifications để hiển thị thông báo mới ngay lập tức
+      console.log('🔄 Refreshing notifications after member addition...');
+      refreshNotificationsWithSocket();
     } catch (error) {
       setMessage(error.message);
     } finally {
       setLoading(false);
     }
   };
+
+  // ✅ Handle remove member
+  const handleRemoveMember = async (member) => {
+    if (!window.confirm(`Are you sure you want to remove ${member.user.fullName || member.user.email} from this ${type}?`)) {
+      return;
+    }
+
+    try {
+      const memberId = member._id;
+
+      if (type === "space") {
+        await removeMemberFromSpace(memberId);
+      } else {
+        await removeMemberFromProject(memberId);
+      }
+
+      // Refresh members list
+      const membersData = type === "space"
+        ? await fetchSpaceMembers(entityId)
+        : await fetchProjectMembers(entityId);
+
+      setMembers(Array.isArray(membersData) ? membersData : []);
+      setMessage(`Member removed successfully from ${type}`);
+
+      // Refresh notifications after member removal
+      console.log('🔄 Refreshing notifications after member removal...');
+      refreshNotificationsWithSocket();
+    } catch (error) {
+      setMessage(error.message);
+    }
+  };
+
 
   return (
       <div className="w-full min-h-screen">
@@ -136,20 +176,54 @@ function Members({ type }) {
             {members.length === 0 ? (
                 <p className="text-gray-400">No members yet.</p>
             ) : (
-                members.map((member) => (
-                    <div key={member.user._id} className="flex items-center gap-3 border-b border-color py-2">
-                <span className="rounded-full bg-gray-500 text-white flex items-center justify-center w-10 h-10">
-                  {member.user.fullName.charAt(0)}
-                </span>
-                      <div>
-                        <p className="text-white">{member.user.fullName}</p>
-                        <p className="text-gray-400 text-sm">{member.user.email}</p>
+                members.map((member) => {
+                  // Kiểm tra an toàn dữ liệu
+                  if (!member || !member.user) {
+                    return null;
+                  }
+
+                  return (
+                    <div key={member.user._id || member._id} className="flex items-center gap-3 border-b border-color py-2">
+                      <span className="rounded-full bg-gray-500 text-white flex items-center justify-center w-10 h-10">
+                        {(member.user.fullName || member.user.email || 'U').charAt(0).toUpperCase()}
+                      </span>
+                      <div className="flex-1">
+                        <p className="text-white">{member.user.fullName || 'Unknown User'}</p>
+                        <p className="text-gray-400 text-sm">{member.user.email || 'No email'}</p>
                       </div>
                       <span className="text-xs px-2 py-1 rounded-md bg-yellow-500 text-black">
-                  {member.role.toUpperCase()}
-                </span>
+                        {(member.role || 'member').toUpperCase()}
+                      </span>
+
+                      {/* ✅ Dropdown menu với icon ba chấm */}
+                      <DropdownMenu.Root>
+                        <DropdownMenu.Trigger asChild>
+                          <button className="p-2 hover:bg-gray-700 rounded-md transition-colors">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-400">
+                              <circle cx="12" cy="12" r="1"></circle>
+                              <circle cx="19" cy="12" r="1"></circle>
+                              <circle cx="5" cy="12" r="1"></circle>
+                            </svg>
+                          </button>
+                        </DropdownMenu.Trigger>
+
+                        <DropdownMenu.Content className="bg-gray-800 border border-gray-700 rounded-md shadow-lg p-1 min-w-[120px]">
+                          <DropdownMenu.Item
+                            className="flex items-center px-3 py-2 text-sm text-red-400 hover:bg-gray-700 rounded cursor-pointer"
+                            onClick={() => handleRemoveMember(member)}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mr-2">
+                              <path d="M3 6h18"></path>
+                              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                            </svg>
+                            Remove
+                          </DropdownMenu.Item>
+                        </DropdownMenu.Content>
+                      </DropdownMenu.Root>
                     </div>
-                ))
+                  );
+                })
             )}
           </div>
         </div>

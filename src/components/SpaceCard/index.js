@@ -50,10 +50,19 @@ function SpaceCard({ space }) {
     navigate("/home");
   };
 
+  // ✅ Safe navigation - kiểm tra space có tồn tại không
+  if (!space) {
+    return (
+      <div className="flex flex-col p-4">
+        <div className="text-gray-400">Loading space...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col p-4 cursor-pointer" onClick={handleNavigate}>
       <div className="flex justify-between">
-        <h4 className="font-bold mb-0.5">{space.name}</h4>
+        <h4 className="font-bold mb-0.5">{space.name || 'Unnamed Space'}</h4>
 
         <RadixDropdownMenu.Root>
           <RadixDropdownMenu.Trigger asChild>

@@ -11,7 +11,7 @@ function SidebarLeftHome() {
             try {
                 const token = localStorage.getItem("access_token");
 
-                const response = await fetch("http://localhost:3002/users/profile", {
+                const response = await fetch("http://localhost:3000/users/profile", {
                     method: "GET",
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -20,13 +20,13 @@ function SidebarLeftHome() {
                 });
 
                 const data = await response.json();
-                console.log(data);
-
                 if (!response.ok) {
                     throw new Error(data.message || "Failed to fetch profile");
                 }
 
                 setUser(data.data);
+                localStorage.setItem("user_avatar", data.data.avatar || ""); // ✅ cache avatar
+
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -37,14 +37,17 @@ function SidebarLeftHome() {
         fetchUserProfile();
     }, []);
 
+    const cachedAvatar = localStorage.getItem("user_avatar") || "";
+
     return (
         <div className="max-w-[280px] w-full border-r border-color">
             <div className="flex flex-col items-center p-4">
         <span className="relative flex shrink-0 rounded-full w-[66px] h-[66px] cursor-pointer">
           <img
               className="aspect-square h-full w-full rounded-full"
-              src={user?.avatar}
-              alt="User Avatar"
+              src={cachedAvatar || "/default-avatar.png"}
+              alt="User avatar"
+              onError={(e) => e.currentTarget.src = "/default-avatar.png"}
           />
         </span>
 
