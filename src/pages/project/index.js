@@ -1,5 +1,5 @@
 import * as Dialog from "@radix-ui/react-dialog";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import ProjectCard from "~/components/ProjectCard";
 import "./project.css";
 import {useParams} from "react-router-dom";
@@ -16,11 +16,7 @@ function Project() {
   const { spaceId } = useParams();
   const { refreshNotificationsWithSocket } = useNotifications();
 
-  useEffect(() => {
-    fetchProjects();
-  }, []);
-
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async () => {
     setLoading(true);
     try {
       // Sử dụng API getProjects để chỉ lấy projects mà user có quyền truy cập
@@ -40,7 +36,11 @@ function Project() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [spaceId]);
+
+  useEffect(() => {
+    fetchProjects();
+  }, [fetchProjects]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

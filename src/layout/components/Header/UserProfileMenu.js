@@ -22,12 +22,12 @@ function UserProfileMenu() {
     } catch (err) {
       console.error('Logout failed', err);
     } finally {
-      // Xóa tokens và redirect
+      // Xóa tokens và redirect đến landing page
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
       localStorage.removeItem('selectedSpace');
       localStorage.removeItem('user_avatar');
-      navigate('/login');
+      navigate('/');
     }
   };
 

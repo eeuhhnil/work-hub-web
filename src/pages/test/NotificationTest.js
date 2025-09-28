@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { formatNotificationMessage, formatTimeAgo } from '../../utils/notificationUtils';
 
@@ -14,7 +14,7 @@ const NotificationTest = () => {
     fetchNotifications
   } = useNotifications();
 
-  const [testMessage, setTestMessage] = useState('');
+
 
   const handleRefresh = () => {
     fetchNotifications();

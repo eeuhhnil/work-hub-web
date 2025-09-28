@@ -1,11 +1,10 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faBuilding, 
-  faFolder, 
-  faTasks, 
+import {
+  faBuilding,
+  faFolder,
+  faTasks,
   faBell,
-  faCheck,
   faCheckDouble,
   faSpinner
 } from '@fortawesome/free-solid-svg-icons';

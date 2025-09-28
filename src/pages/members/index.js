@@ -14,7 +14,7 @@ function Members({ type }) {
   const [loading, setLoading] = useState(false);
   const [members, setMembers] = useState([]);
   const [open, setOpen] = useState(false);
-  const { refreshNotifications, refreshNotificationsWithSocket } = useNotifications();
+  const { refreshNotificationsWithSocket } = useNotifications();
 
   useEffect(() => {
     const loadMembers = async () => {

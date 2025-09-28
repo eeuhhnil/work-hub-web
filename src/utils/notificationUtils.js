@@ -45,7 +45,7 @@ export const formatNotificationMessage = (notification) => {
       return `${actor} added ${data.newMemberName || 'a member'} to space "${data.spaceName}"`;
 
     case NotificationType.YOU_WERE_ADDED_TO_SPACE:
-      return `${actor} added you to space "${data.spaceName}"`;
+      return `${actor} added ${data.newMemberName || 'a member'} to space "${data.spaceName}"`;
 
     case NotificationType.REMOVE_MEMBER_FROM_SPACE:
       return `${actor} removed ${data.removedMemberName || 'a member'} from space "${data.spaceName}"`;
@@ -57,10 +57,10 @@ export const formatNotificationMessage = (notification) => {
 
     
     case NotificationType.YOU_WERE_ADDED_TO_PROJECT:
-      return `${actor} added you to project "${data.projectName}"`;
+      return `${actor} added ${data.newMemberName || 'a member'} to project "${data.projectName}"`;
 
     case NotificationType.YOU_WERE_REMOVED_FROM_PROJECT:
-      return `${actor} removed you from project "${data.projectName}"`;
+      return `${actor} removed ${data.removedMemberName || 'a member'} from project "${data.projectName}"`;
 
     case NotificationType.ADD_MEMBER_TO_PROJECT:
       return `${actor} added ${data.newMemberName || 'a member'} to project "${data.projectName}"`;

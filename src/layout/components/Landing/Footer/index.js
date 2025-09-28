@@ -8,9 +8,9 @@ function Footer() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <p className=" text-muted-foreground text-[16px]">Duong Thi Hue Linh</p>
-          <a className=" text-muted-foreground text-[16px] hover:text-[#fafafa] cursor-pointer">Contact Us</a>
-          <a className="text-muted-foreground text-[16px] hover:text-[#fafafa]cursor-pointer">Privacy Policy</a>
-          <a className="text-muted-foreground  text-[16px] hover:text-[#fafafa] cursor-pointer">Terms of use</a>
+          <button className=" text-muted-foreground text-[16px] hover:text-[#fafafa] cursor-pointer">Contact Us</button>
+          <button className="text-muted-foreground text-[16px] hover:text-[#fafafa] cursor-pointer">Privacy Policy</button>
+          <button className="text-muted-foreground  text-[16px] hover:text-[#fafafa] cursor-pointer">Terms of use</button>
         </div>
         <div className="flex gap-3 items-center">
             <Link to="https://github.com/eeuhhnil"

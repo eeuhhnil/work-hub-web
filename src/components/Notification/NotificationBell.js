@@ -3,7 +3,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBell } from '@fortawesome/free-solid-svg-icons';
 import { useNotifications } from '../../contexts/NotificationContext';
 import NotificationDropdown from './NotificationDropdown';
-import websocketService from '../../services/websocket';
 
 const NotificationBell = () => {
   const [isOpen, setIsOpen] = useState(false);
