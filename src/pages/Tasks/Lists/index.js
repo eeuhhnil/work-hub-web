@@ -4,13 +4,14 @@ import { useParams } from "react-router-dom";
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { createTaskWithFiles } from "~/api/taskApi";
 import { useNotifications } from "~/contexts/NotificationContext";
+import { getTokenPayload } from "~/utils/tokenUtils";
 
 
 function TaskList() {
   const { projectId, spaceId } = useParams();
   console.log("TaskList params:", { projectId, spaceId }); // Debug log
   const [tasks, setTasks] = useState([]);
-  const { refreshNotifications, refreshNotificationsWithSocket, waitForSocketConnection } = useNotifications();
+  const { refreshNotificationsWithSocket } = useNotifications();
   const [task, setTask] = useState({
     name: "",
     description: "",
@@ -56,6 +57,47 @@ function TaskList() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const dropdownRef = useRef(null);
   const fileInputRef = useRef(null);
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const [userPermissions, setUserPermissions] = useState({
+    canUpdateAllFields: false,
+    canUpdateAllExceptStatus: false,
+    canUpdateStatusAndFiles: false,
+  });
+
+  // Get current user ID from token
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    if (token) {
+      const payload = getTokenPayload(token);
+      if (payload && payload.sub) {
+        setCurrentUserId(payload.sub);
+      }
+    }
+  }, []);
+
+  // Determine user permissions for a task
+  const determineUserPermissions = (task) => {
+    if (!currentUserId || !task) {
+      return {
+        canUpdateAllFields: false,
+        canUpdateAllExceptStatus: false,
+        canUpdateStatusAndFiles: false,
+      };
+    }
+
+    const isTaskOwner = task.owner?._id === currentUserId;
+    const isTaskAssignee = task.assignee?._id === currentUserId;
+
+    // For now, we'll assume space/project ownership based on task ownership
+    // In a more complete implementation, you'd fetch user's role in space/project
+    const isSpaceOrProjectOwner = false; // This would need to be determined from API
+
+    return {
+      canUpdateAllFields: isSpaceOrProjectOwner,
+      canUpdateAllExceptStatus: isTaskOwner && !isSpaceOrProjectOwner,
+      canUpdateStatusAndFiles: isTaskAssignee && !isTaskOwner && !isSpaceOrProjectOwner,
+    };
+  };
 
   //lay du lieu 1 task
   const handleEditTask = async (taskId) => {
@@ -76,6 +118,11 @@ function TaskList() {
       setCurrentTask(data.data);
       setEditSearch(data.data.assignee?.fullName || "");
       setEditSelectedFiles([]);
+
+      // Determine user permissions for this task
+      const permissions = determineUserPermissions(data.data);
+      setUserPermissions(permissions);
+
       setIsEditModalOpen(true);
     } catch (error) {
       console.error("Error fetching task:", error);
@@ -222,17 +269,41 @@ function TaskList() {
       const token = localStorage.getItem("access_token");
       let data;
 
-      // Prepare task data
-      const updatedTask = {
-        name: currentTask.name,
-        description: currentTask.description,
-        status: currentTask.status,
-        startDate: currentTask.startDate || null,
-        dueDate: currentTask.dueDate || null,
-        priority: currentTask.priority || 'medium',
-        assignee: currentTask.assignee?._id || currentTask.assignee || null,
-        attachments: currentTask.attachments || [] // Existing attachments
-      };
+      // Prepare task data based on user permissions
+      let updatedTask = {};
+
+      if (userPermissions.canUpdateAllFields) {
+        // Space/Project owners can update everything
+        updatedTask = {
+          name: currentTask.name,
+          description: currentTask.description,
+          status: currentTask.status,
+          startDate: currentTask.startDate || null,
+          dueDate: currentTask.dueDate || null,
+          priority: currentTask.priority || 'medium',
+          assignee: currentTask.assignee?._id || currentTask.assignee || null,
+          attachments: currentTask.attachments || []
+        };
+      } else if (userPermissions.canUpdateAllExceptStatus) {
+        // Task owners can update everything except status
+        updatedTask = {
+          name: currentTask.name,
+          description: currentTask.description,
+          startDate: currentTask.startDate || null,
+          dueDate: currentTask.dueDate || null,
+          priority: currentTask.priority || 'medium',
+          assignee: currentTask.assignee?._id || currentTask.assignee || null,
+          attachments: currentTask.attachments || []
+        };
+      } else if (userPermissions.canUpdateStatusAndFiles) {
+        // Task assignees can only update status and attachments
+        updatedTask = {
+          status: currentTask.status,
+          attachments: currentTask.attachments || []
+        };
+      } else {
+        throw new Error("You don't have permission to update this task");
+      }
 
       // Always use FormData for consistency (like create task)
       const formData = new FormData();
@@ -246,7 +317,7 @@ function TaskList() {
         }
       });
 
-      // Add new files if any
+      // Add new files if any (allowed for all permission levels)
       if (editSelectedFiles.length > 0) {
         editSelectedFiles.forEach(file => {
           formData.append('files', file);
@@ -962,124 +1033,146 @@ function TaskList() {
                   {/* Modal Content */}
                   <div className="px-6 py-4 max-h-[70vh] overflow-y-auto">
                     <form id="edit-task-form" className="space-y-5" onSubmit={handleSaveTask}>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Task Name *</label>
-                        <input
-                          name="name"
-                          value={currentTask.name}
-                          onChange={handleChangeEdit}
-                          className="w-full px-4 py-3 bg-gray-800 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Description</label>
-                        <textarea
-                          name="description"
-                          value={currentTask.description}
-                          onChange={handleChangeEdit}
-                          className="w-full px-4 py-3 bg-gray-800 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
-                          rows="4"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Status</label>
-                        <select
-                          name="status"
-                          value={currentTask.status}
-                          onChange={handleChangeEdit}
-                          className="w-full px-4 py-3 bg-gray-800 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                        >
-                          {Object.entries(TASK_STATUS).map(([key, value]) => (
-                              <option key={key} value={key} className="bg-gray-800">
-                                {value}
-                              </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="relative" ref={editDropdownRef}>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Assign to</label>
-                        <div className="relative">
+                      {/* Task Name - Hidden for assignee-only users */}
+                      {!userPermissions.canUpdateStatusAndFiles && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">Task Name *</label>
                           <input
-                            name="assignee"
-                            value={editSearch}
-                            onChange={handleEditSearchChange}
-                            onFocus={() => setShowEditDropdown(true)}
-                            className="w-full px-4 py-3 pr-10 bg-gray-800 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                            type="text"
-                            placeholder="Search team members..."
+                            name="name"
+                            value={currentTask.name}
+                            onChange={handleChangeEdit}
+                            className="w-full px-4 py-3 bg-gray-800 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                            required
                           />
-                          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                          </div>
                         </div>
+                      )}
 
-                        {showEditDropdown && (
-                          <div
-                            className="absolute top-full left-0 right-0 mt-2 bg-gray-800 border border-gray-600 rounded-lg shadow-xl max-h-40 overflow-auto"
-                            style={{ zIndex: 10000 }}
+                      {/* Description - Hidden for assignee-only users */}
+                      {!userPermissions.canUpdateStatusAndFiles && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">Description</label>
+                          <textarea
+                            name="description"
+                            value={currentTask.description}
+                            onChange={handleChangeEdit}
+                            className="w-full px-4 py-3 bg-gray-800 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
+                            rows="4"
+                          />
+                        </div>
+                      )}
+
+                      {/* Status - Hidden for task owners (canUpdateAllExceptStatus) */}
+                      {!userPermissions.canUpdateAllExceptStatus && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">Status</label>
+                          <select
+                            name="status"
+                            value={currentTask.status}
+                            onChange={handleChangeEdit}
+                            className="w-full px-4 py-3 bg-gray-800 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                           >
-                            {filteredEditMembers.length > 0 ? (
-                              filteredEditMembers.map((member) => (
-                                <div
-                                  key={member.user._id}
-                                  className="p-3 hover:bg-gray-700 cursor-pointer flex items-center gap-3 transition-colors"
-                                  onClick={() => handleSelectEditMember(member)}
-                                >
-                                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold text-sm">
-                                    {member.user.fullName.charAt(0).toUpperCase()}
-                                  </div>
-                                  <div>
-                                    <p className="text-sm font-medium text-white">{member.user.fullName}</p>
-                                    <p className="text-xs text-gray-400">Team Member</p>
-                                  </div>
-                                </div>
-                              ))
-                            ) : (
-                              <div className="p-4 text-center">
-                                <p className="text-sm text-gray-400">No members found</p>
-                              </div>
-                            )}
+                            {Object.entries(TASK_STATUS).map(([key, value]) => (
+                                <option key={key} value={key} className="bg-gray-800">
+                                  {value}
+                                </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                      {/* Assign to - Hidden for assignee-only users */}
+                      {!userPermissions.canUpdateStatusAndFiles && (
+                        <div className="relative" ref={editDropdownRef}>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">Assign to</label>
+                          <div className="relative">
+                            <input
+                              name="assignee"
+                              value={editSearch}
+                              onChange={handleEditSearchChange}
+                              onFocus={() => setShowEditDropdown(true)}
+                              className="w-full px-4 py-3 pr-10 bg-gray-800 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                              type="text"
+                              placeholder="Search team members..."
+                            />
+                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                              </svg>
+                            </div>
                           </div>
-                        )}
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-2">Start Date</label>
-                          <input
-                            name="startDate"
-                            value={currentTask.startDate || ""}
-                            onChange={handleChangeEdit}
-                            type="date"
-                            className="w-full px-4 py-3 bg-gray-800 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                          />
+
+                          {showEditDropdown && (
+                            <div
+                              className="absolute top-full left-0 right-0 mt-2 bg-gray-800 border border-gray-600 rounded-lg shadow-xl max-h-40 overflow-auto"
+                              style={{ zIndex: 10000 }}
+                            >
+                              {filteredEditMembers.length > 0 ? (
+                                filteredEditMembers.map((member) => (
+                                  <div
+                                    key={member.user._id}
+                                    className="p-3 hover:bg-gray-700 cursor-pointer flex items-center gap-3 transition-colors"
+                                    onClick={() => handleSelectEditMember(member)}
+                                  >
+                                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold text-sm">
+                                      {member.user.fullName.charAt(0).toUpperCase()}
+                                    </div>
+                                    <div>
+                                      <p className="text-sm font-medium text-white">{member.user.fullName}</p>
+                                      <p className="text-xs text-gray-400">Team Member</p>
+                                    </div>
+                                  </div>
+                                ))
+                              ) : (
+                                <div className="p-4 text-center">
+                                  <p className="text-sm text-gray-400">No members found</p>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-2">Due Date</label>
-                          <input
-                            name="dueDate"
-                            value={currentTask.dueDate || ""}
-                            onChange={handleChangeEdit}
-                            type="date"
-                            className="w-full px-4 py-3 bg-gray-800 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                          />
+                      )}
+
+                      {/* Start Date and Due Date - Hidden for assignee-only users */}
+                      {!userPermissions.canUpdateStatusAndFiles && (
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-2">Start Date</label>
+                            <input
+                              name="startDate"
+                              value={currentTask.startDate || ""}
+                              onChange={handleChangeEdit}
+                              type="date"
+                              className="w-full px-4 py-3 bg-gray-800 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-2">Due Date</label>
+                            <input
+                              name="dueDate"
+                              value={currentTask.dueDate || ""}
+                              onChange={handleChangeEdit}
+                              type="date"
+                              className="w-full px-4 py-3 bg-gray-800 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                            />
+                          </div>
                         </div>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Priority</label>
-                        <select
-                            name="priority"
-                            value={currentTask.priority || 'medium'}
-                            onChange={handleChangeEdit}
-                            className="w-full px-4 py-3 bg-gray-800 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                        >
-                          {Object.entries(TASK_PRIORITY).map(([key, label]) => (
-                            <option key={key} value={key} className="bg-gray-800">{label}</option>
-                          ))}
-                        </select>
-                      </div>
+                      )}
+
+                      {/* Priority - Hidden for assignee-only users */}
+                      {!userPermissions.canUpdateStatusAndFiles && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">Priority</label>
+                          <select
+                              name="priority"
+                              value={currentTask.priority || 'medium'}
+                              onChange={handleChangeEdit}
+                              className="w-full px-4 py-3 bg-gray-800 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                          >
+                            {Object.entries(TASK_PRIORITY).map(([key, label]) => (
+                              <option key={key} value={key} className="bg-gray-800">{label}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
 
                       {/* Existing Attachments Section */}
                       {currentTask.attachments && currentTask.attachments.length > 0 && (

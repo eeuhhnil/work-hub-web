@@ -137,10 +137,6 @@ function TaskCalendar() {
     setCurrentDate(newDate);
   };
 
-  const goToToday = () => {
-    setCurrentDate(new Date());
-  };
-
   // Get task color based on priority or status
   const getTaskColor = (task) => {
     if (task.status === 'completed') {

@@ -1,44 +1,20 @@
 import { useState, useEffect } from "react";
 import {Link, useParams} from "react-router-dom";
 import TaskStatistic from "~/layout/Sidebar/Home/TaskStatistic";
-import { fetchDashboardAnalytics } from "~/api/analyticsApi";
-import { fetchUserTaskStats, fetchUserTaskStatsBySpace } from "~/api/taskApi";
-import { getProjectsBySpace } from "~/api/projectApi";
-import { fetchProjectMembers } from "~/api/projectMemberApi";
+import { fetchUserTaskStatsBySpace } from "~/api/taskApi";
 import { useNotifications } from "~/contexts/NotificationContext";
 import { formatNotificationMessage, formatTimeAgo } from "~/utils/notificationUtils";
 
 function Home() {
   const { spaceId } = useParams();
-  const [analytics, setAnalytics] = useState(null);
   const [taskStats, setTaskStats] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [taskStatsLoading, setTaskStatsLoading] = useState(true);
-  const [projects, setProjects] = useState([]);
-  const [projectsLoading, setProjectsLoading] = useState(true);
 
   // Get notifications from context
   const { notifications, fetchNotifications } = useNotifications();
 
 
-  // Fetch analytics data
-  useEffect(() => {
-    const loadAnalytics = async () => {
-      if (!spaceId) return;
 
-      try {
-        setLoading(true);
-        const data = await fetchDashboardAnalytics(spaceId);
-        setAnalytics(data);
-      } catch (error) {
-        console.error("Error loading analytics:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadAnalytics();
-  }, [spaceId]);
 
   // Fetch task statistics
   useEffect(() => {
@@ -59,28 +35,7 @@ function Home() {
     loadTaskStats();
   }, [spaceId]); // Phụ thuộc vào spaceId để cập nhật khi chuyển space
 
-  // Fetch projects data
-  useEffect(() => {
-    const loadProjects = async () => {
-      if (!spaceId) return;
 
-      try {
-        setProjectsLoading(true);
-
-        // Chỉ fetch tất cả project trong space
-        const projectsData = await getProjectsBySpace(spaceId);
-
-        setProjects(projectsData); // lưu trực tiếp vào state
-      } catch (error) {
-        console.error("Error loading projects:", error);
-        setProjects([]);
-      } finally {
-        setProjectsLoading(false);
-      }
-    };
-
-    loadProjects();
-  }, [spaceId]);
 
   // Fetch notifications for current space
   useEffect(() => {
@@ -162,22 +117,7 @@ function Home() {
     </svg>
   );
 
-  const projectIcon = (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="lucide lucide-folder w-4 h-4"
-    >
-      <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path>
-    </svg>
-  );
+
 
   // Get 4 most recent notifications for recent activities
   const recentActivities = notifications
