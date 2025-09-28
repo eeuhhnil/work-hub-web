@@ -5,7 +5,7 @@ networks:
 
 services:
   web:
-    image: ${DOCKERHUB_USERNAME}/work-hub-web:latest
+    image: ${DOCKERHUB_USERNAME}/workhub-web:latest
     container_name: work-hub-web
     restart: always
     ports:
