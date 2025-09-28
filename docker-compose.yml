@@ -1,0 +1,16 @@
+networks:
+  work_hub_net:
+    name: work_hub_net
+    driver: bridge
+
+services:
+  web:
+    image: ${DOCKERHUB_USERNAME}/work-hub-web:latest
+    container_name: work-hub-web
+    restart: always
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    networks:
+      - work_hub_net
