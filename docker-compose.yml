@@ -5,12 +5,14 @@ networks:
 
 services:
   web:
-    image: ${DOCKERHUB_USERNAME}/workhub-web:latest
+    image: tranhoangnamdocker/work-hub-web:latest
     container_name: work-hub-web
     restart: always
     ports:
       - "8080:8080"
     env_file:
       - .env
+    environment:
+      - REACT_APP_API_URL=${REACT_APP_API_URL}
     networks:
       - work_hub_net
