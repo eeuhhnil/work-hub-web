@@ -33,8 +33,13 @@ export const isTokenValid = (token) => {
 };
 
 export const getTokenPayload = (token) => {
+  // If no token provided, try to get from localStorage
+  if (!token) {
+    token = localStorage.getItem('access_token');
+  }
+
   if (!token) return null;
-  
+
   try {
     return JSON.parse(atob(token.split('.')[1]));
   } catch (error) {

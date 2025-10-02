@@ -5,6 +5,7 @@ import SubSidebar from "~/layout/SubSidebar";
 import { useState, useMemo } from "react";
 import TaskList from "~/pages/Tasks/Lists";
 import TaskCalendar from "~/pages/Tasks/Calendar";
+import PendingApprovalTasks from "~/pages/Tasks/PendingApproval";
 import Members from "~/pages/members";
 import Setting from "~/pages/settings";
 
@@ -15,6 +16,7 @@ function ProjectLayout() {
   const taskComponent = useMemo(() => {
     if (viewMode === "list") return <TaskList />;
     if (viewMode === "calendar") return <TaskCalendar />;
+    if (viewMode === "pending-approval") return <PendingApprovalTasks />;
     return null;
   }, [viewMode]);
 
