@@ -1,7 +1,17 @@
 import {Link, useParams} from "react-router-dom";
+import { getTokenPayload } from "~/utils/tokenUtils";
 
 function SubSidebar({ viewMode, setViewMode }) {
   const {spaceId, projectId} = useParams();
+
+  // Get user role to determine if they can see Pending Approval
+  const userPayload = getTokenPayload();
+  const isProjectManager = userPayload?.role === 'project_manager';
+
+  // Debug logs
+  console.log("🔍 SubSidebar Debug - userPayload:", userPayload);
+  console.log("🔍 SubSidebar Debug - role:", userPayload?.role);
+  console.log("🔍 SubSidebar Debug - isProjectManager:", isProjectManager);
 
   return (
     <div className="border border-color min-w-[200px]">
@@ -14,6 +24,13 @@ function SubSidebar({ viewMode, setViewMode }) {
             className={`px-3 py-2 text-sm text-left rounded-md ${viewMode === "calendar" ? "bg-accent text-accent-foreground" : "hover:bg-muted"}`} onClick={() => setViewMode("calendar")}>
           Calendar View
         </Link>
+        {/* Only show Pending Approval for Project Managers */}
+        {isProjectManager && (
+          <Link to={`/space/${spaceId}/project/${projectId}/pending-approval`}
+              className={`px-3 py-2 text-sm text-left rounded-md ${viewMode === "pending-approval" ? "bg-accent text-accent-foreground" : "hover:bg-muted"}`} onClick={() => setViewMode("pending-approval")}>
+            Pending Approval
+          </Link>
+        )}
       </nav>
     </div>
   );

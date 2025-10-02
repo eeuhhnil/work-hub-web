@@ -14,6 +14,7 @@ import Members from "~/pages/members";
 import Setting from "~/pages/settings";
 import TaskList from "~/pages/Tasks/Lists";
 import TaskCalendar from "~/pages/Tasks/Calendar";
+import PendingApprovalTasks from "~/pages/Tasks/PendingApproval";
 import ApiTest from "~/pages/test/ApiTest";
 import NotificationTest from "~/pages/test/NotificationTest";
 import SocketTest from "~/pages/test/SocketTest";
@@ -42,6 +43,7 @@ export const protectedRoutes = [
   { path: "/space/:spaceId/project/:projectId/setting", component: Setting, layout: ProjectLayout},
   { path: "/space/:spaceId/project/:projectId/taskList", component: TaskList, layout: ProjectLayout},
   { path: "/space/:spaceId/project/:projectId/calendar", component: TaskCalendar, layout: ProjectLayout},
+  { path: "/space/:spaceId/project/:projectId/pending-approval", component: PendingApprovalTasks, layout: ProjectLayout},
   { path: "/space/:spaceId/analytics", component: Analytics, layout: HeaderOnly},
   { path: "/space/:spaceId/project/:projectId/analytics", component: Analytics, layout: ProjectLayout},
   { path: "/test/notifications", component: NotificationTest, layout: HeaderOnly},

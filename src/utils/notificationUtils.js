@@ -21,6 +21,9 @@ export const NotificationType = {
   UPDATE_TASK: 'UPDATED_TASK',
   YOU_WERE_ASSIGNED_TASK: 'YOU_WERE_ASSIGNED_TASK',
   TASK_STATUS_CHANGED: 'TASK_STATUS_CHANGED',
+  TASK_PENDING_APPROVAL: 'TASK_PENDING_APPROVAL',
+  TASK_APPROVED: 'TASK_APPROVED',
+  TASK_REJECTED: 'TASK_REJECTED',
 };
 
 // Format notification message based on type and data
@@ -80,6 +83,15 @@ export const formatNotificationMessage = (notification) => {
     case NotificationType.TASK_STATUS_CHANGED:
       return `${actor} changed status of task "${data.taskTitle}" to ${data.newStatus}`;
 
+    case NotificationType.TASK_PENDING_APPROVAL:
+      return `${actor} submitted task "${data.taskTitle}" for approval`;
+
+    case NotificationType.TASK_APPROVED:
+      return `${actor} approved task "${data.taskTitle}"`;
+
+    case NotificationType.TASK_REJECTED:
+      return `${actor} rejected task "${data.taskTitle}"`;
+
     default:
       return `${actor} performed an action`;
   }
@@ -106,6 +118,9 @@ export const getNotificationIcon = (type) => {
     case NotificationType.DELETE_TASK:
     case NotificationType.YOU_WERE_ASSIGNED_TASK:
     case NotificationType.TASK_STATUS_CHANGED:
+    case NotificationType.TASK_PENDING_APPROVAL:
+    case NotificationType.TASK_APPROVED:
+    case NotificationType.TASK_REJECTED:
       return 'tasks';
 
     default:
@@ -141,7 +156,14 @@ export const getNotificationColor = (type) => {
     case NotificationType.UPDATE_PROJECT:
     case NotificationType.UPDATE_TASK:
     case NotificationType.TASK_STATUS_CHANGED:
+    case NotificationType.TASK_PENDING_APPROVAL:
       return 'text-yellow-600';
+
+    case NotificationType.TASK_APPROVED:
+      return 'text-green-600';
+
+    case NotificationType.TASK_REJECTED:
+      return 'text-red-600';
 
     default:
       return 'text-gray-600';

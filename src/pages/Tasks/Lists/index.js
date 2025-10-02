@@ -12,6 +12,10 @@ function TaskList() {
   console.log("TaskList params:", { projectId, spaceId }); // Debug log
   const [tasks, setTasks] = useState([]);
   const { refreshNotificationsWithSocket } = useNotifications();
+
+  // Get user role to determine what statuses they can see/set
+  const userPayload = getTokenPayload();
+  const isProjectManager = userPayload?.role === 'project_manager';
   const [task, setTask] = useState({
     name: "",
     description: "",
@@ -25,6 +29,7 @@ function TaskList() {
   const TASK_STATUS = {
     pending: "Pending",
     processing: "Processing",
+    pending_approval: "Pending Approval",
     completed: "Completed",
   };
 
@@ -38,6 +43,13 @@ function TaskList() {
     low: "bg-green-100 text-green-800",
     medium: "bg-yellow-100 text-yellow-800",
     high: "bg-orange-100 text-orange-800",
+  };
+
+  const STATUS_COLORS = {
+    pending: "bg-gray-100 text-gray-800",
+    processing: "bg-blue-100 text-blue-800",
+    pending_approval: "bg-orange-100 text-orange-800",
+    completed: "bg-green-100 text-green-800",
   };
 
   const [search, setSearch] = useState("");
@@ -685,11 +697,17 @@ function TaskList() {
                             onChange={handleChange}
                             className="w-full px-4 py-3 bg-gray-800 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                           >
-                            {Object.entries(TASK_STATUS).map(([key, value]) => (
+                            {Object.entries(TASK_STATUS).map(([key, value]) => {
+                              // For new tasks, don't show completed or pending_approval options
+                              if (key === 'completed' || key === 'pending_approval') {
+                                return null;
+                              }
+                              return (
                                 <option key={key} value={key} className="bg-gray-800">
                                   {value}
                                 </option>
-                            ))}
+                              );
+                            })}
                           </select>
                         </div>
 
@@ -878,7 +896,11 @@ function TaskList() {
                 return (
                   <tr key={task._id} className="border-b border-color">
                     <td className="px-2 py-2">{task.name || 'Untitled Task'}</td>
-                    <td className="px-2 py-2">{TASK_STATUS[task.status] || 'Unknown'}</td>
+                    <td className="px-2 py-2">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[task.status] || 'bg-gray-100 text-gray-800'}`}>
+                        {TASK_STATUS[task.status] || 'Unknown'}
+                      </span>
+                    </td>
                     <td className="px-2 py-2">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${PRIORITY_COLORS[task.priority] || 'bg-gray-100 text-gray-800'}`}>
                         {TASK_PRIORITY[task.priority] || 'Medium'}
@@ -1071,12 +1093,17 @@ function TaskList() {
                             onChange={handleChangeEdit}
                             className="w-full px-4 py-3 bg-gray-800 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                           >
-                            {Object.entries(TASK_STATUS).map(([key, value]) => (
+                            {Object.entries(TASK_STATUS).map(([key, value]) => {
+                              // Members cannot set status to "completed" - only PM can approve to completed
+                              if (!isProjectManager && key === 'completed') {
+                                return null;
+                              }
+                              return (
                                 <option key={key} value={key} className="bg-gray-800">
                                   {value}
                                 </option>
-                            ))}
-                          </select>
+                              );
+                            })}                          </select>
                         </div>
                       )}
                       {/* Assign to - Hidden for assignee-only users */}

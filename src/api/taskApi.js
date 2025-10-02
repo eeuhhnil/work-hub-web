@@ -211,3 +211,53 @@ export const fetchUserTaskStatsBySpace = async (spaceId) => {
         throw error;
     }
 };
+
+// Get tasks pending approval for PM/Project Owner
+export const fetchPendingApprovalTasks = async (query = {}) => {
+    try {
+        const params = new URLSearchParams();
+        Object.keys(query).forEach(key => {
+            if (query[key] !== undefined && query[key] !== null) {
+                params.append(key, query[key]);
+            }
+        });
+
+        const data = await apiRequest(`${API_CONFIG.ENDPOINTS.TASKS.BASE}/pending-approval?${params.toString()}`, {
+            method: "GET",
+        });
+
+        // Return the full response so component can access both data and meta
+        return data;
+    } catch (error) {
+        console.error("Error fetching pending approval tasks:", error);
+        throw error;
+    }
+};
+
+// Approve a task (PM/Project Owner only)
+export const approveTask = async (taskId, payload) => {
+    try {
+        const data = await apiRequest(`${API_CONFIG.ENDPOINTS.TASKS.BASE}/${taskId}/approve`, {
+            method: "POST",
+            body: JSON.stringify(payload),
+        });
+        return data;
+    } catch (error) {
+        console.error("Error approving task:", error);
+        throw error;
+    }
+};
+
+// Reject a task (PM/Project Owner only)
+export const rejectTask = async (taskId, payload) => {
+    try {
+        const data = await apiRequest(`${API_CONFIG.ENDPOINTS.TASKS.BASE}/${taskId}/reject`, {
+            method: "POST",
+            body: JSON.stringify(payload),
+        });
+        return data;
+    } catch (error) {
+        console.error("Error rejecting task:", error);
+        throw error;
+    }
+};
