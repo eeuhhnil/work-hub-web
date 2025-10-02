@@ -2,6 +2,10 @@
 FROM node:20-alpine as build
 WORKDIR /app
 
+# Declare build argument
+ARG REACT_APP_API_URL
+ENV REACT_APP_API_URL=$REACT_APP_API_URL
+
 # Copy package & install deps
 COPY package.json package-lock.json* yarn.lock* ./
 RUN npm install --legacy-peer-deps
