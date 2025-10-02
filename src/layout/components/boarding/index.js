@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import SpaceCard from "~/components/SpaceCard";
+import { apiRequest } from "~/config/api";
+import API_CONFIG from "~/config/api";
 
 function Boarding() {
   const [listSpaces, setListSpaces] = useState([]);
@@ -11,20 +13,9 @@ function Boarding() {
   useEffect(() => {
     const fetchSpaces = async () => {
       try {
-        const token = localStorage.getItem("access_token");
-        const response = await fetch("http://localhost:3000/spaces", {
+        const data = await apiRequest(API_CONFIG.ENDPOINTS.SPACES.LIST, {
           method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
         });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.message || "Failed to fetch spaces");
-        }
 
         setListSpaces(data.data
           .filter(space => space != null) // Filter out null spaces

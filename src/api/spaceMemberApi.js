@@ -1,17 +1,13 @@
-const API_BASE_URL = "http://localhost:3000";
+import { apiRequest } from "~/config/api";
+import API_CONFIG from "~/config/api";
 
 export const getSpaceMembers = async (spaceId, token) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/space-members/space/${spaceId}`, {
+        // Note: This function accepts token as parameter for backward compatibility
+        // but apiRequest will use token from localStorage
+        const data = await apiRequest(`${API_CONFIG.ENDPOINTS.SPACES.MEMBERS}/space/${spaceId}`, {
             method: "GET",
-            headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-            },
         });
-
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.message || "Failed to fetch space members");
 
         return data.data;
     } catch (error) {
@@ -22,17 +18,12 @@ export const getSpaceMembers = async (spaceId, token) => {
 
 export const addMemberToSpace = async (spaceId, userId, token) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/space-members`, {
+        // Note: This function accepts token as parameter for backward compatibility
+        // but apiRequest will use token from localStorage
+        const data = await apiRequest(API_CONFIG.ENDPOINTS.SPACES.MEMBERS, {
             method: "POST",
-            headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-            },
             body: JSON.stringify({ spaceId, userId }),
         });
-
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.message || "Failed to add member.");
 
         return data.data;
     } catch (error) {
