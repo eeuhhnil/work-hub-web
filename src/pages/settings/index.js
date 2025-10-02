@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import { apiRequest } from "~/config/api";
+import API_CONFIG from "~/config/api";
 
 function Setting() {
   const { projectId } = useParams();
@@ -12,17 +14,9 @@ function Setting() {
   useEffect(() => {
     const fetchProjectDetails = async () => {
       try {
-        const token = localStorage.getItem("access_token");
-        const response = await fetch(`http://localhost:3000/projects/${projectId}`, {
+        const data = await apiRequest(`${API_CONFIG.ENDPOINTS.PROJECTS.BASE}/${projectId}`, {
           method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
         });
-
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.message || "Failed to fetch project");
 
         setProject({
           name: data.data.name,
@@ -42,21 +36,13 @@ function Setting() {
 
   const handleUpdateProject = async () => {
     try {
-      const token = localStorage.getItem("access_token");
-      const response = await fetch(`http://localhost:3000/projects/${projectId}`, {
+      await apiRequest(`${API_CONFIG.ENDPOINTS.PROJECTS.BASE}/${projectId}`, {
         method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({
           name: project.name,
           description: project.description,
         }),
       });
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || "Failed to update project");
 
       setMessage("Project updated successfully!");
     } catch (error) {

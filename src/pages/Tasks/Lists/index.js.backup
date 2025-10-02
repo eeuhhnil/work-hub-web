@@ -2,12 +2,9 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-import { createTaskWithFiles, fetchTaskById, deleteTask } from "~/api/taskApi";
-import { fetchProjectMembers } from "~/api/projectMemberApi";
+import { createTaskWithFiles } from "~/api/taskApi";
 import { useNotifications } from "~/contexts/NotificationContext";
 import { getTokenPayload } from "~/utils/tokenUtils";
-import { apiRequest, buildApiUrl } from "~/config/api";
-import API_CONFIG from "~/config/api";
 
 
 function TaskList() {
@@ -15,10 +12,6 @@ function TaskList() {
   console.log("TaskList params:", { projectId, spaceId }); // Debug log
   const [tasks, setTasks] = useState([]);
   const { refreshNotificationsWithSocket } = useNotifications();
-
-  // Get user role to determine what statuses they can see/set
-  const userPayload = getTokenPayload();
-  const isProjectManager = userPayload?.role === 'project_manager';
   const [task, setTask] = useState({
     name: "",
     description: "",
@@ -118,7 +111,17 @@ function TaskList() {
   const handleEditTask = async (taskId) => {
     setIsLoading(true);
     try {
-      const data = await fetchTaskById(taskId);
+      const token = localStorage.getItem("access_token");
+      const response = await fetch(`http://localhost:3000/tasks/${taskId}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Failed to fetch task");
 
       setCurrentTask(data.data);
       setEditSearch(data.data.assignee?.fullName || "");
@@ -140,13 +143,17 @@ function TaskList() {
   useEffect(() => {
     const fetchTasksData = async () => {
       try {
-        const params = new URLSearchParams();
-        if (spaceId) params.append('space', spaceId);
-        if (projectId) params.append('project', projectId);
-
-        const data = await apiRequest(`${API_CONFIG.ENDPOINTS.TASKS.BASE}?${params.toString()}`, {
+        const token = localStorage.getItem("access_token");
+        const response = await fetch(`http://localhost:3000/tasks?space=${spaceId}&project=${projectId}`, {
           method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         });
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Failed to fetch tasks");
 
         // Đảm bảo tasks luôn là array
         const tasksData = data.data?.docs || data.data || [];
@@ -184,7 +191,17 @@ function TaskList() {
     if (!window.confirm("Bạn có chắc chắn muốn xoá task này?")) return;
 
     try {
-      await deleteTask(taskId);
+      const token = localStorage.getItem("access_token");
+      const response = await fetch(`http://localhost:3000/tasks/${taskId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Failed to delete task");
 
       // Xoá khỏi state
       setTasks(prevTasks => prevTasks.filter(task => task._id !== taskId));
@@ -207,8 +224,21 @@ function TaskList() {
   useEffect(() => {
     const fetchMembers = async () => {
       try {
-        const membersData = await fetchProjectMembers(projectId);
-        console.log(membersData);
+        const token = localStorage.getItem("access_token");
+        const response = await fetch(`http://localhost:3000/project?project=${projectId}`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        const data = await response.json();
+        console.log(data)
+        if (!response.ok) throw new Error(data.message || "Failed to fetch members");
+
+        // Handle pagination response format
+        const membersData = data.data?.docs || data.data || [];
         setMembers(Array.isArray(membersData) ? membersData : []);
       } catch (error) {
         console.error("Error fetching members:", error);
@@ -307,8 +337,8 @@ function TaskList() {
         console.log(key, value);
       }
 
-      // Update task using FormData with fetch (because we need FormData support)
-      const response = await fetch(buildApiUrl(`${API_CONFIG.ENDPOINTS.TASKS.BASE}/${currentTask._id}`), {
+      // Update task using FormData
+      const response = await fetch(`http://localhost:3000/tasks/${currentTask._id}`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -455,11 +485,19 @@ function TaskList() {
 
         data = await createTaskWithFiles(spaceId, projectId, bodyData, selectedFiles);
       } else {
-        // Nếu không có file, sử dụng apiRequest
-        data = await apiRequest(`${API_CONFIG.ENDPOINTS.TASKS.BASE}/space/${spaceId}/project/${projectId}`, {
+        // Nếu không có file, sử dụng API cũ
+        const token = localStorage.getItem("access_token");
+        const response = await fetch(`http://localhost:3000/tasks/space/${spaceId}/project/${projectId}`, {
           method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify(bodyData),
         });
+
+        data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Failed to create task");
       }
 
       console.log(data)
@@ -1052,16 +1090,27 @@ function TaskList() {
                             className="w-full px-4 py-3 bg-gray-800 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                           >
                             {Object.entries(TASK_STATUS).map(([key, value]) => {
-                              // Members cannot set status to "completed" - only PM can approve to completed
-                              if (!isProjectManager && key === 'completed') {
-                                return null;
+                              // For assignee-only users, show "Submit for Approval" instead of "Completed"
+                              if (userPermissions.canUpdateStatusAndFiles && key === 'completed') {
+                                return (
+                                  <option key={key} value={key} className="bg-gray-800">
+                                    Submit for Approval
+                                  </option>
+                                );
                               }
                               return (
                                 <option key={key} value={key} className="bg-gray-800">
                                   {value}
                                 </option>
                               );
-                            })}                          </select>
+                            })}
+                          </select>
+                          {/* Info message for assignee-only users */}
+                          {userPermissions.canUpdateStatusAndFiles && (
+                            <p className="text-xs text-gray-400 mt-1">
+                              When you select "Submit for Approval", the task will be sent to PM for review.
+                            </p>
+                          )}
                         </div>
                       )}
                       {/* Assign to - Hidden for assignee-only users */}

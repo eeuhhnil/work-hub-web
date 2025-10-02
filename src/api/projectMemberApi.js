@@ -1,19 +1,11 @@
-const BASE_URL = "http://localhost:3000";
-const getToken = () => localStorage.getItem("access_token");
-
+import { apiRequest } from "~/config/api";
+import API_CONFIG from "~/config/api";
 
 export const fetchProjectMembers = async (projectId) => {
     try {
-        const response = await fetch(`${BASE_URL}/project?project=${projectId}`, {
+        const data = await apiRequest(`${API_CONFIG.ENDPOINTS.PROJECTS.MEMBERS}?project=${projectId}`, {
             method: "GET",
-            headers: {
-                Authorization: `Bearer ${getToken()}`,
-                "Content-Type": "application/json",
-            },
         });
-
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.message || "Failed to fetch project members.");
 
         // API có thể trả về pagination object với docs array
         return data.data.docs || data.data || [];
@@ -27,17 +19,10 @@ export const fetchProjectMembers = async (projectId) => {
 // 🔥 API mời thành viên vào project
 export const inviteMemberToProject = async (projectId, email) => {
     try {
-        const response = await fetch(`${BASE_URL}/project`, {
+        const data = await apiRequest(API_CONFIG.ENDPOINTS.PROJECTS.MEMBERS, {
             method: "POST",
-            headers: {
-                Authorization: `Bearer ${getToken()}`,
-                "Content-Type": "application/json",
-            },
             body: JSON.stringify({ projectId, email }),
         });
-
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.message || "Failed to add member to project.");
 
         return data.message; // ✅ Trả về thông báo thành công
     } catch (error) {
@@ -49,16 +34,9 @@ export const inviteMemberToProject = async (projectId, email) => {
 // ✅ Remove member from project
 export const removeMemberFromProject = async (projectMemberId) => {
     try {
-        const response = await fetch(`${BASE_URL}/project/${projectMemberId}`, {
+        const data = await apiRequest(`${API_CONFIG.ENDPOINTS.PROJECTS.MEMBERS}/${projectMemberId}`, {
             method: "DELETE",
-            headers: {
-                Authorization: `Bearer ${getToken()}`,
-                "Content-Type": "application/json",
-            },
         });
-
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.message || "Failed to remove member from project.");
 
         return data.message; // ✅ Trả về thông báo thành công
     } catch (error) {

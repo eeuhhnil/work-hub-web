@@ -34,6 +34,12 @@ const API_CONFIG = {
     // Task endpoints
     TASKS: {
       BASE: '/tasks',
+      UPLOAD_FILES: '/tasks/upload-files',
+      CALENDAR: '/tasks/calendar',
+      STATS: '/tasks/stats',
+      PENDING_APPROVAL: '/tasks/pending-approval',
+      APPROVE: '/tasks/:taskId/approve',
+      REJECT: '/tasks/:taskId/reject',
     },
 
     // Analytics endpoints
@@ -50,6 +56,18 @@ const API_CONFIG = {
       UNREAD: '/notification/unread',
       MARK_READ: '/notification',
       MARK_ALL_READ: '/notification/mark-all-read',
+    },
+
+    // BOM (Board of Management) endpoints
+    BOM: {
+      DASHBOARD: '/bom/dashboard',
+      OVERVIEW: '/bom/overview',
+      SYSTEM_PROGRESS: '/bom/system-progress',
+      SPACE_PERFORMANCE: '/bom/space-performance',
+      PM_PERFORMANCE: '/bom/pm-performance',
+      RISK_PROJECTS: '/bom/risk-projects',
+      KPI_METRICS: '/bom/kpi-metrics',
+      WEEKLY_PROGRESS: '/bom/weekly-progress',
     },
 
   }

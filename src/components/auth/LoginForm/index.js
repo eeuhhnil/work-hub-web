@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import banner5 from "~/assets/images/landingpage/img5.png";
-import { apiRequest } from "~/config/api";
+import { apiRequest, buildApiUrl } from "~/config/api";
 import API_CONFIG from "~/config/api";
 
 function LoginForm() {
@@ -70,7 +70,7 @@ function LoginForm() {
               </div>
               <div>
                 <button className="w-full border border-color px-3 py-3 text-[14px] font-medium rounded-md inline-flex justify-center items-center"
-                        onClick={() => window.location.href = 'http://localhost:3000/auth/google'}>
+                        onClick={() => window.location.href = buildApiUrl(API_CONFIG.ENDPOINTS.AUTH.GOOGLE)}>
                   <svg role="img" viewBox="0 0 24 24" className="mr-2 h-6 w-6">
                     <path
                         fill="currentColor"

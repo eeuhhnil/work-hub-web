@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { apiRequest, buildApiUrl } from "~/config/api";
+import API_CONFIG from "~/config/api";
 
 function Profile() {
   const [user, setUser] = useState({
@@ -16,21 +18,9 @@ function Profile() {
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        const token = localStorage.getItem("access_token");
-
-        const response = await fetch("http://localhost:3000/users/profile", {
+        const data = await apiRequest(API_CONFIG.ENDPOINTS.USERS.PROFILE, {
           method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
         });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.message || "Failed to fetch profile");
-        }
 
         setUser({
           fullName: data.data.fullName,
@@ -76,8 +66,8 @@ function Profile() {
       if (user.password) formData.append("password", user.password); // ✅ Nếu có thay đổi mật khẩu
       if (selectedFile) formData.append("file", selectedFile); // ✅ Nếu có ảnh mới
 
-      // Gửi yêu cầu cập nhật profile
-      const response = await fetch("http://localhost:3000/users/profile", {
+      // Gửi yêu cầu cập nhật profile using fetch (because we need FormData support)
+      const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.USERS.PROFILE), {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,

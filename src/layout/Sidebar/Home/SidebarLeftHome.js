@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import Calendar from "~/pages/calender";
+import { apiRequest } from "~/config/api";
+import API_CONFIG from "~/config/api";
 
 function SidebarLeftHome() {
     const [user, setUser] = useState(null);
@@ -9,20 +11,9 @@ function SidebarLeftHome() {
     useEffect(() => {
         const fetchUserProfile = async () => {
             try {
-                const token = localStorage.getItem("access_token");
-
-                const response = await fetch("http://localhost:3000/users/profile", {
+                const data = await apiRequest(API_CONFIG.ENDPOINTS.USERS.PROFILE, {
                     method: "GET",
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        "Content-Type": "application/json",
-                    },
                 });
-
-                const data = await response.json();
-                if (!response.ok) {
-                    throw new Error(data.message || "Failed to fetch profile");
-                }
 
                 setUser(data.data);
                 localStorage.setItem("user_avatar", data.data.avatar || ""); // ✅ cache avatar
