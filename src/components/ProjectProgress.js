@@ -13,7 +13,6 @@ function ProjectProgress() {
         setError(null);
         
         const data = await getUserProjectsProgress();
-        console.log("Projects progress data:", data);
         setProjectsProgress(data || []);
       } catch (error) {
         console.error("Error fetching projects progress:", error);

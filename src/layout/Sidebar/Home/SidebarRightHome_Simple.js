@@ -14,7 +14,6 @@ function SidebarRightHomeSimple() {
   useEffect(() => {
     const loadData = async () => {
       if (!spaceId) {
-        console.log("No spaceId provided");
         return;
       }
 

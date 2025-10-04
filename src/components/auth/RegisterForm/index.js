@@ -33,8 +33,6 @@ function RegisterForm() {
         body: JSON.stringify(formData),
       });
 
-      console.log("Register response:", data);
-
       setSuccess("Registration successful!");
       setTimeout(()=>{
         navigate("/login");

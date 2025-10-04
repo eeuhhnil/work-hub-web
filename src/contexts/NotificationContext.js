@@ -216,22 +216,18 @@ export const NotificationProvider = ({ children }) => {
   const waitForSocketConnection = useCallback((timeout = 3000) => {
     return new Promise((resolve) => {
       if (websocketService.isSocketConnected()) {
-        console.log('✅ Socket already connected');
         resolve(true);
         return;
       }
 
-      console.log('⏳ Waiting for socket connection...');
       let attempts = 0;
       const maxAttempts = timeout / 100;
 
       const checkConnection = () => {
         attempts++;
         if (websocketService.isSocketConnected()) {
-          console.log('✅ Socket connected after waiting');
           resolve(true);
         } else if (attempts >= maxAttempts) {
-          console.log('⚠️ Socket connection timeout, proceeding anyway');
           resolve(false);
         } else {
           setTimeout(checkConnection, 100);
@@ -244,14 +240,12 @@ export const NotificationProvider = ({ children }) => {
 
   // Enhanced refresh that ensures socket connection
   const refreshNotificationsWithSocket = useCallback(async (spaceId = null) => {
-    console.log('🔄 Enhanced refresh with socket check...');
 
     // Wait for socket connection first
     await waitForSocketConnection(1000);
 
     // Only refresh if socket is not connected (to avoid duplicates)
     if (!websocketService.isSocketConnected()) {
-      console.log('🔄 Socket not connected, refreshing notifications from API...');
       await refreshNotifications(spaceId);
     } else {
       console.log('✅ Socket connected, relying on real-time notifications');

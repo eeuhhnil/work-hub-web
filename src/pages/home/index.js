@@ -40,15 +40,12 @@ function Home() {
   // Fetch notifications for current space
   useEffect(() => {
     const loadNotifications = async () => {
-      if (!spaceId) {
-        console.log('❌ No spaceId provided, skipping notification fetch');
-        return;
+      if (!spaceId) {return;
       }
 
       try {
         await fetchNotifications(spaceId);
       } catch (error) {
-        console.error("❌ Error loading notifications for space:", error);
       }
     };
 

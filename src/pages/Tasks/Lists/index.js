@@ -12,7 +12,6 @@ import API_CONFIG from "~/config/api";
 
 function TaskList() {
   const { projectId, spaceId } = useParams();
-  console.log("TaskList params:", { projectId, spaceId }); // Debug log
   const [tasks, setTasks] = useState([]);
   const { refreshNotificationsWithSocket } = useNotifications();
 
@@ -191,7 +190,6 @@ function TaskList() {
       setMessage("Task deleted successfully!");
 
       // Refresh notifications after task deletion
-      console.log('🔄 Refreshing notifications after task deletion...');
       refreshNotificationsWithSocket();
 
       setTimeout(() => setMessage(""), 3000);
@@ -208,7 +206,6 @@ function TaskList() {
     const fetchMembers = async () => {
       try {
         const membersData = await fetchProjectMembers(projectId);
-        console.log(membersData);
         setMembers(Array.isArray(membersData) ? membersData : []);
       } catch (error) {
         console.error("Error fetching members:", error);
@@ -302,9 +299,7 @@ function TaskList() {
         });
       }
 
-      console.log("FormData to be sent:"); // Debug
       for (let [key, value] of formData.entries()) {
-        console.log(key, value);
       }
 
       // Update task using FormData with fetch (because we need FormData support)
@@ -338,7 +333,6 @@ function TaskList() {
       }
 
       // Refresh notifications để hiển thị thông báo mới ngay lập tức
-      console.log('🔄 Refreshing notifications after task update...');
       refreshNotificationsWithSocket();
     } catch (error) {
       console.error("Error updating task:", error);
@@ -432,10 +426,6 @@ function TaskList() {
       priority: task.priority || 'medium',
     };
 
-    console.log("Dữ liệu sẽ gửi:", bodyData); // In ra trước khi gửi
-    console.log("SpaceId:", spaceId, "ProjectId:", projectId);
-    console.log("Selected files:", selectedFiles);
-
     try {
       let data;
 
@@ -462,7 +452,6 @@ function TaskList() {
         });
       }
 
-      console.log(data)
 
       if (typeof data.data.assignee === "string") {
         const matched = members.find((m) => m.user._id === data.data.assignee);
@@ -494,8 +483,6 @@ function TaskList() {
       // Đóng modal sau khi tạo task thành công
       setIsCreateModalOpen(false);
 
-      // Refresh notifications để hiển thị thông báo mới ngay lập tức
-      console.log('🔄 Refreshing notifications after task creation...');
       refreshNotificationsWithSocket();
 
       // Auto clear message after 3 seconds

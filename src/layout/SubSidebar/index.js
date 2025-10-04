@@ -8,11 +8,6 @@ function SubSidebar({ viewMode, setViewMode }) {
   const userPayload = getTokenPayload();
   const isProjectManager = userPayload?.role === 'project_manager';
 
-  // Debug logs
-  console.log("🔍 SubSidebar Debug - userPayload:", userPayload);
-  console.log("🔍 SubSidebar Debug - role:", userPayload?.role);
-  console.log("🔍 SubSidebar Debug - isProjectManager:", isProjectManager);
-
   return (
     <div className="border border-color min-w-[200px]">
       <nav className="grid gap-1 px-2">

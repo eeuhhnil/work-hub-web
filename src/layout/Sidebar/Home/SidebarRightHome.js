@@ -14,34 +14,26 @@ function SidebarRightHome() {
   useEffect(() => {
     const loadData = async () => {
       if (!spaceId) {
-        console.log("No spaceId provided");
         return;
       }
 
       try {
         setLoading(true);
         setError(null);
-        console.log("Loading data for spaceId:", spaceId);
 
         // Check authentication
         const token = localStorage.getItem('access_token');
-        console.log("Access token exists:", !!token);
         if (!token) {
           throw new Error("No access token found. Please login again.");
         }
 
         // Fetch space members
-        console.log("Fetching space members...");
         const membersData = await fetchSpaceMembers(spaceId);
-        console.log("Members data received:", membersData);
         setTeamMembers(Array.isArray(membersData) ? membersData : []);
 
         // Fetch user projects with progress - lấy dữ liệu thực từ API
-        console.log("Fetching user projects with progress...");
         const projectsData = await getUserProjectsProgress();
-        console.log("Raw user projects with progress data received:", projectsData);
-        console.log("Is projectsData an array?", Array.isArray(projectsData));
-        console.log("ProjectsData length:", projectsData?.length);
+
 
         // Filter projects theo spaceId nếu có
         const filteredProjects = spaceId
@@ -49,7 +41,6 @@ function SidebarRightHome() {
           : projectsData;
 
         const formattedProjects = Array.isArray(filteredProjects) ? filteredProjects.map((project, index) => {
-          console.log("Processing user project:", project);
           // Lấy progress từ API (đã có dạng "33%") và chuyển thành số
           const progressValue = parseInt(project.progress) || 0;
           return {
@@ -61,8 +52,6 @@ function SidebarRightHome() {
           };
         }) : [];
 
-        console.log("Formatted user projects:", formattedProjects);
-        console.log("Formatted projects length:", formattedProjects.length);
         setOngoingProjects(formattedProjects);
 
       } catch (error) {

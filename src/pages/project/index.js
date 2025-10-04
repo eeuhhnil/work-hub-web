@@ -21,7 +21,6 @@ function Project() {
     try {
       // Sử dụng API getProjects để chỉ lấy projects mà user có quyền truy cập
       const projectsData = await getProjects();
-      console.log("User projects data:", projectsData);
 
       // Filter projects theo spaceId nếu có
       const filteredProjects = spaceId
@@ -65,8 +64,6 @@ function Project() {
       setOpen(false);
       fetchProjects();
 
-      // Refresh notifications after project creation
-      console.log('🔄 Refreshing notifications after project creation...');
       refreshNotificationsWithSocket();
     } catch (error) {
       console.error("Error creating project:", error);
