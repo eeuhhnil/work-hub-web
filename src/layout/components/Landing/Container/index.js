@@ -25,9 +25,8 @@ function Container() {
         <h4 className="text-[#fafafa] text-[30px] font-bold mb-3">Key Features Of WorkHub</h4>
         <p className="text-muted-foreground  text-[16px]">Discover the powerful tools that make team management seamless.</p>
         <div className="pt-16">
-          <img src={banner5} alt="" className="w-[960px] h-[306px] object-cover"
+          <img src={banner5} alt="" className="w-full h-[306px] object-cover"
           />
-          {/*<img src="https://stable.vn/assets/feature-dark-do8tzMEc.svg" alt=""></img>*/}
         </div>
       </div>
       <div id="product" className="container">
