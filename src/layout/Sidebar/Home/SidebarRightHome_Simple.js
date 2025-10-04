@@ -21,19 +21,15 @@ function SidebarRightHomeSimple() {
       try {
         setLoading(true);
         setError(null);
-        console.log("Loading data for spaceId:", spaceId);
-        
+
         // Check authentication
         const token = localStorage.getItem('access_token');
-        console.log("Access token exists:", !!token);
         if (!token) {
           throw new Error("No access token found. Please login again.");
         }
 
         // Fetch user projects with progress - lấy dữ liệu thực từ API
-        console.log("Fetching user projects with progress...");
         const projectsData = await getUserProjectsProgress();
-        console.log("Raw user projects with progress data received:", projectsData);
 
         if (projectsData && Array.isArray(projectsData) && projectsData.length > 0) {
           // Filter projects theo space nếu có spaceId
@@ -53,17 +49,13 @@ function SidebarRightHomeSimple() {
             };
           });
 
-          console.log("✅ User projects formatted successfully:", formattedProjects);
           setOngoingProjects(formattedProjects);
         } else {
-          console.log("❌ No user projects data or empty array");
           setOngoingProjects([]);
         }
 
         // Fetch space members
-        console.log("Fetching space members...");
         const membersData = await fetchSpaceMembers(spaceId);
-        console.log("Members data received:", membersData);
         setTeamMembers(Array.isArray(membersData) ? membersData : []);
 
       } catch (error) {

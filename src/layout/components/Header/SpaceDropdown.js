@@ -49,7 +49,6 @@ function SpaceDropdown() {
     setSelectedSpace(space);
 
     // Refresh notifications for the new space
-    console.log('🔄 Refreshing notifications for new space:', space.id);
     await refreshNotifications(space.id);
 
     navigate(`/space/${space.id}`);

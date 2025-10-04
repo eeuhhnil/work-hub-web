@@ -28,16 +28,8 @@ export const NotificationType = {
 
 // Format notification message based on type and data
 export const formatNotificationMessage = (notification) => {
-  console.log('🎨 Formatting notification:', {
-    type: notification.type,
-    actorName: notification.actorName,
-    data: notification.data,
-    fullNotification: notification
-  });
-
   const { type, data, actorName } = notification;
   const actor = actorName
-  console.log('🎨 Final actor name:', actor);
 
   switch (type) {
     // Space notifications

@@ -18,14 +18,28 @@ class WebSocketService {
       return;
     }
 
+    // Kiểm tra token có hợp lệ không (thêm validation)
+    try {
+      const tokenPayload = JSON.parse(atob(token.split('.')[1]));
+      const isExpired = tokenPayload.exp * 1000 < Date.now();
+      
+      if (isExpired) {
+        console.warn('Token expired, waiting for refresh...');
+        // Đợi token refresh và retry
+        setTimeout(() => this.connect(), 1000);
+        return;
+      }
+    } catch (e) {
+      console.warn('Invalid token format');
+      return;
+    }
+
     // Don't create new connection if already connecting/connected
     if (this.socket && (this.socket.connected || this.socket.connecting)) {
-      console.log('🔄 Socket already connected/connecting, skipping...');
       return;
     }
 
     try {
-      console.log('🚀 Creating new WebSocket connection...');
       this.socket = io(API_CONFIG.BASE_URL, {
         transports: ['websocket', 'polling'],
         auth: {
@@ -56,43 +70,43 @@ class WebSocketService {
 
     // Connection successful
     this.socket.on('connect', () => {
-      console.log('✅ WebSocket connected:', this.socket.id);
       this.isConnected = true;
       this.reconnectAttempts = 0;
 
-      // Notify listeners about connection
-      this.notifyListeners('connect', { socketId: this.socket.id });
+      // Notify listeners ngay lập tức
+      this.notifyListeners('connect', {
+        socketId: this.socket.id,
+        connected: true
+      });
 
-      // Join user room for notifications
+      // Join user room
       this.socket.emit('join', {});
     });
 
-    // Connection confirmed by server
+    // Server confirmed connection - đây là event quan trọng
     this.socket.on('connected', (data) => {
-      console.log('✅ Server confirmed connection:', data);
+      // Đảm bảo connection status được set
+      this.isConnected = true;
+      this.notifyListeners('connect', {
+        confirmed: true,
+        data
+      });
     });
 
-    // User joined room
+    // User joined room successfully
     this.socket.on('joined', (data) => {
-      console.log('✅ Joined notification room:', data);
+      // Final confirmation - connection hoàn toàn thành công
+      this.isConnected = true;
+      this.notifyListeners('connect', {
+        joined: true,
+        data
+      });
     });
 
     // Handle notifications
     this.socket.on('notification', (notification) => {
-      console.log('🔔 New notification received via WebSocket:', {
-        id: notification._id,
-        type: notification.type,
-        actorName: notification.actorName,
-        isRead: notification.isRead,
-        createdAt: notification.createdAt,
-        timestamp: new Date().toISOString()
-      });
-
       // Immediately notify listeners
       this.notifyListeners('notification', notification);
-
-      // Log successful notification delivery
-      console.log('✅ Notification delivered to listeners');
     });
 
     // Handle unauthorized
@@ -100,11 +114,18 @@ class WebSocketService {
       console.error('❌ WebSocket unauthorized:', error);
       this.disconnect();
       this.notifyListeners('unauthorized', error);
+      
+      // Retry sau 2 giây với token mới (có thể đã được refresh)
+      setTimeout(() => {
+        const newToken = localStorage.getItem('access_token');
+        if (newToken) {
+          this.connect();
+        }
+      }, 2000);
     });
 
     // Handle disconnect
     this.socket.on('disconnect', (reason) => {
-      console.log('❌ WebSocket disconnected:', reason);
       this.isConnected = false;
       this.notifyListeners('disconnect', { reason });
 
@@ -123,7 +144,6 @@ class WebSocketService {
 
     // Handle reconnection
     this.socket.on('reconnect', (attemptNumber) => {
-      console.log('🔄 WebSocket reconnected after', attemptNumber, 'attempts');
       this.isConnected = true;
       this.reconnectAttempts = 0;
       this.notifyListeners('connect', { reconnected: true, attempts: attemptNumber });
@@ -148,8 +168,7 @@ class WebSocketService {
     }
 
     this.reconnectAttempts++;
-    console.log(`🔄 Attempting to reconnect... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
-    
+
     setTimeout(() => {
       const token = localStorage.getItem('access_token');
       if (token && this.socket) {
@@ -196,14 +215,6 @@ class WebSocketService {
   // Utility methods
   isSocketConnected() {
     const connected = this.isConnected && this.socket && this.socket.connected;
-    // Reduced logging for better performance
-    if (!connected) {
-      console.log('🔍 Connection check failed:', {
-        isConnected: this.isConnected,
-        hasSocket: !!this.socket,
-        socketConnected: this.socket ? this.socket.connected : false
-      });
-    }
     return connected;
   }
 
@@ -223,9 +234,8 @@ class WebSocketService {
   }
 
   // Force connection status update
-  updateConnectionStatus() {
+  forceUpdateConnectionStatus() {
     const connected = this.isSocketConnected();
-    console.log('🔄 Forcing connection status update:', connected);
     if (connected) {
       this.notifyListeners('connect', { connected, forced: true });
     } else {
@@ -237,7 +247,6 @@ class WebSocketService {
   // Send test notification to check connection
   sendTestNotification() {
     if (this.socket && this.isConnected) {
-      console.log('📤 Sending test notification...');
       this.socket.emit('test-notification', {
         message: 'Test notification from frontend',
         timestamp: new Date().toISOString()

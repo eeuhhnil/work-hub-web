@@ -46,10 +46,7 @@ function Home() {
       }
 
       try {
-        console.log('🔄 Loading notifications for space:', spaceId);
-        console.log('🔄 Current URL:', window.location.pathname);
         await fetchNotifications(spaceId);
-        console.log('✅ Notifications loaded for space:', spaceId);
       } catch (error) {
         console.error("❌ Error loading notifications for space:", error);
       }

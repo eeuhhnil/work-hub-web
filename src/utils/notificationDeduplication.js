@@ -1,10 +1,3 @@
-// Utility functions for notification deduplication
-
-/**
- * Remove duplicate notifications based on ID and similar content
- * @param {Array} notifications - Array of notifications
- * @returns {Array} - Deduplicated notifications
- */
 export const deduplicateNotifications = (notifications) => {
   if (!Array.isArray(notifications)) {
     return [];
@@ -21,15 +14,13 @@ export const deduplicateNotifications = (notifications) => {
 
     // Check for exact ID duplicates
     if (seen.has(notification._id)) {
-      console.log('🔄 Removing duplicate notification by ID:', notification._id);
       continue;
     }
 
     // Check for similar notifications (same type, same target, within 5 seconds)
     const similarKey = `${notification.type}-${notification.data?.taskId || ''}-${notification.data?.projectId || ''}-${notification.data?.spaceId || ''}-${Math.floor(new Date(notification.createdAt).getTime() / 5000)}`;
-    
+
     if (seen.has(similarKey)) {
-      console.log('🔄 Removing similar notification:', notification.type, notification._id);
       continue;
     }
 
@@ -38,16 +29,9 @@ export const deduplicateNotifications = (notifications) => {
     deduplicated.push(notification);
   }
 
-  console.log(`🧹 Deduplication: ${notifications.length} → ${deduplicated.length} notifications`);
   return deduplicated;
 };
 
-/**
- * Check if a notification is a duplicate of existing ones
- * @param {Object} newNotification - New notification to check
- * @param {Array} existingNotifications - Existing notifications
- * @returns {boolean} - True if duplicate
- */
 export const isDuplicateNotification = (newNotification, existingNotifications) => {
   if (!newNotification || !Array.isArray(existingNotifications)) {
     return false;
@@ -72,13 +56,6 @@ export const isDuplicateNotification = (newNotification, existingNotifications) 
   return similarExists;
 };
 
-/**
- * Clean old notifications to prevent memory issues
- * @param {Array} notifications - Array of notifications
- * @param {number} maxAge - Maximum age in hours (default: 24)
- * @param {number} maxCount - Maximum number of notifications to keep (default: 100)
- * @returns {Array} - Cleaned notifications
- */
 export const cleanOldNotifications = (notifications, maxAge = 24, maxCount = 100) => {
   if (!Array.isArray(notifications)) {
     return [];
@@ -93,18 +70,10 @@ export const cleanOldNotifications = (notifications, maxAge = 24, maxCount = 100
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, maxCount);
 
-  if (filtered.length < notifications.length) {
-    console.log(`🧹 Cleaned old notifications: ${notifications.length} → ${filtered.length}`);
-  }
-
   return filtered;
 };
 
-/**
- * Group notifications by type and target for better display
- * @param {Array} notifications - Array of notifications
- * @returns {Object} - Grouped notifications
- */
+
 export const groupNotifications = (notifications) => {
   if (!Array.isArray(notifications)) {
     return {};
@@ -137,11 +106,6 @@ export const groupNotifications = (notifications) => {
   return groups;
 };
 
-/**
- * Merge similar notifications into summary notifications
- * @param {Array} notifications - Array of notifications
- * @returns {Array} - Merged notifications
- */
 export const mergeSimilarNotifications = (notifications) => {
   if (!Array.isArray(notifications) || notifications.length <= 1) {
     return notifications;

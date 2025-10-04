@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBell } from '@fortawesome/free-solid-svg-icons';
 import { useNotifications } from '../../contexts/NotificationContext';
 import NotificationDropdown from './NotificationDropdown';
+import websocketService from '../../services/websocket';
 
 const NotificationBell = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -10,6 +11,19 @@ const NotificationBell = () => {
   const dropdownRef = useRef(null);
   const buttonRef = useRef(null);
   const { unreadCount, isConnected } = useNotifications();
+
+  // Debug connection status
+  useEffect(() => {
+    console.log('🔔 NotificationBell - isConnected:', isConnected);
+    console.log('🔔 WebSocket service status:', websocketService.getConnectionStatus());
+  }, [isConnected]);
+
+  // Thêm button để force check connection (temporary debug)
+  const handleDebugConnection = () => {
+    const status = websocketService.getConnectionStatus();
+    console.log('🔍 Debug connection status:', status);
+    websocketService.forceUpdateConnectionStatus();
+  };
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -43,13 +57,10 @@ const NotificationBell = () => {
       <button
         ref={buttonRef}
         onClick={toggleDropdown}
+        onDoubleClick={handleDebugConnection} // Double click để debug
         className={`
           relative p-2 rounded-lg transition-colors duration-200
-          ${isOpen
-            ? 'bg-blue-50 text-blue-600'
-            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-800'
-          }
-          ${!isConnected ? 'opacity-50' : ''}
+          ${isConnected ? 'text-green-600' : 'text-red-600'}
         `}
         title={isConnected ? 'Notifications' : 'Disconnected from notifications'}
       >
@@ -63,9 +74,9 @@ const NotificationBell = () => {
         )}
 
         {/* Connection Status Indicator */}
-        {!isConnected && (
-          <span className="absolute -bottom-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></span>
-        )}
+        <span className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${
+          isConnected ? 'bg-green-500' : 'bg-red-500'
+        }`}></span>
       </button>
 
       {/* Dropdown */}

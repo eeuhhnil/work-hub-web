@@ -26,7 +26,6 @@ const ActionTypes = {
 
 // Reducer
 const notificationReducer = (state, action) => {
-  console.log('🔄 Notification reducer action:', action.type, action.payload);
   switch (action.type) {
     case ActionTypes.SET_LOADING:
       return { ...state, loading: action.payload };
@@ -49,13 +48,11 @@ const notificationReducer = (state, action) => {
     case ActionTypes.ADD_NOTIFICATION:
       // Use utility function to check for duplicates
       if (isDuplicateNotification(action.payload, state.notifications)) {
-        console.log('🔄 Duplicate notification detected, skipping:', action.payload._id);
         return state;
       }
 
       const newNotifications = cleanOldNotifications([action.payload, ...state.notifications]);
       const newUnreadCount = newNotifications.filter(n => !n.isRead).length;
-      console.log('➕ Adding new notification:', action.payload._id, 'Total:', newNotifications.length);
       return {
         ...state,
         notifications: newNotifications,
@@ -106,9 +103,6 @@ export const NotificationProvider = ({ children }) => {
       dispatch({ type: ActionTypes.SET_LOADING, payload: true });
 
       const token = localStorage.getItem('access_token');
-      console.log('🔑 Fetching notifications with token:', token ? 'Present' : 'Missing');
-      console.log('🔄 Fetching notifications', spaceId ? `for space: ${spaceId}` : 'for all spaces');
-
       const params = {};
       if (spaceId) {
         params.spaceId = spaceId;
@@ -118,8 +112,6 @@ export const NotificationProvider = ({ children }) => {
         method: 'GET',
         params,
       });
-      console.log('📥 Notifications response:', response);
-      console.log('📥 Request params sent:', params);
 
       dispatch({ type: ActionTypes.SET_NOTIFICATIONS, payload: response.data || [] });
     } catch (error) {
@@ -154,11 +146,9 @@ export const NotificationProvider = ({ children }) => {
 
   // WebSocket event handlers
   const handleNewNotification = useCallback((notification) => {
-    console.log('📨 New notification received via WebSocket:', notification);
 
     // Check if this is a real-time notification (has actorName) or pending notification
     const isRealTimeNotification = notification.actorName && notification.actorName !== 'Someone';
-    console.log('🔍 Is real-time notification:', isRealTimeNotification);
 
     dispatch({ type: ActionTypes.ADD_NOTIFICATION, payload: notification });
 
@@ -180,81 +170,41 @@ export const NotificationProvider = ({ children }) => {
     }, 100);
   }, []);
 
-  const handleConnectionChange = useCallback((isConnected) => {
-    console.log('🔌 Connection status changed:', isConnected);
+  const handleConnectionChange = useCallback((data) => {
+    const isConnected = data?.connected !== false;
     dispatch({ type: ActionTypes.SET_CONNECTION_STATUS, payload: isConnected });
   }, []);
 
   const handleUnauthorized = useCallback(() => {
-    console.warn('WebSocket unauthorized, user may need to re-login');
     dispatch({ type: ActionTypes.SET_CONNECTION_STATUS, payload: false });
   }, []);
 
   // Initialize WebSocket and fetch notifications
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    if (!token) {
-      console.log('No access token found, skipping notification setup');
-      return;
-    }
+    const initializeWebSocket = async () => {
+      const token = localStorage.getItem('access_token');
+      if (!token) return;
 
-    console.log('🚀 Initializing notification system...');
+      // Setup listeners
+      websocketService.on('connect', handleConnectionChange);
+      websocketService.on('disconnect', (data) => handleConnectionChange({ connected: false, ...data }));
+      websocketService.on('notification', handleNewNotification);
+      websocketService.on('unauthorized', handleUnauthorized);
 
-    // Setup WebSocket event listeners FIRST (before connecting)
-    console.log('🔧 Setting up WebSocket event listeners...');
-    websocketService.on('notification', handleNewNotification);
-    websocketService.on('connect', () => {
-      console.log('🔌 WebSocket connect event received');
-      handleConnectionChange(true);
-      // Fetch notifications after successful connection to get any missed ones
-      setTimeout(() => {
-        console.log('🔄 Fetching notifications after socket connection...');
-        fetchNotifications();
-      }, 100);
-    });
-    websocketService.on('disconnect', () => {
-      console.log('❌ WebSocket disconnect event received');
-      handleConnectionChange(false);
-    });
-    websocketService.on('unauthorized', handleUnauthorized);
-
-    // Fetch initial notifications
-    fetchNotifications();
-
-    // Connect WebSocket immediately (no delay)
-    console.log('🔌 Connecting to WebSocket immediately...');
-
-    // Disconnect first if already connected to ensure clean connection
-    if (websocketService.isSocketConnected()) {
-      console.log('🔄 Disconnecting existing WebSocket connection...');
-      websocketService.disconnect();
-    }
-
-    websocketService.connect();
-
-    // Check connection status with shorter delay
-    setTimeout(() => {
-      console.log('⏰ Checking initial connection status...');
-      const connected = websocketService.updateConnectionStatus();
-      if (connected) {
-        handleConnectionChange(true);
-      }
-    }, 200);
-
-    // Request notification permission
-    if (Notification.permission === 'default') {
-      Notification.requestPermission();
-    }
-
-    // Cleanup on unmount
-    return () => {
-      websocketService.off('notification', handleNewNotification);
-      websocketService.off('connect', () => handleConnectionChange(true));
-      websocketService.off('disconnect', () => handleConnectionChange(false));
-      websocketService.off('unauthorized', handleUnauthorized);
-      websocketService.disconnect();
+      // Connect và fetch
+      websocketService.connect();
+      await fetchNotifications();
     };
-  }, [fetchNotifications, handleNewNotification, handleConnectionChange, handleUnauthorized]);
+
+    initializeWebSocket();
+
+    return () => {
+      websocketService.off('connect', handleConnectionChange);
+      websocketService.off('disconnect', handleConnectionChange);
+      websocketService.off('notification', handleNewNotification);
+      websocketService.off('unauthorized', handleUnauthorized);
+    };
+  }, [handleConnectionChange, handleNewNotification, handleUnauthorized, fetchNotifications]);
 
   // Force refresh notifications (useful after actions)
   const refreshNotifications = useCallback(async (spaceId = null) => {

@@ -65,7 +65,6 @@ function Members({ type }) {
       setMembers(Array.isArray(membersData) ? membersData : []);
 
       // Refresh notifications để hiển thị thông báo mới ngay lập tức
-      console.log('🔄 Refreshing notifications after member addition...');
       refreshNotificationsWithSocket();
     } catch (error) {
       setMessage(error.message);
@@ -98,7 +97,6 @@ function Members({ type }) {
       setMessage(`Member removed successfully from ${type}`);
 
       // Refresh notifications after member removal
-      console.log('🔄 Refreshing notifications after member removal...');
       refreshNotificationsWithSocket();
     } catch (error) {
       setMessage(error.message);
