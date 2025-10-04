@@ -2,7 +2,7 @@ import banner1 from "~/assets/images/landingpage/img1.png";
 import banner2 from "~/assets/images/landingpage/img2.png";
 import banner3 from "~/assets/images/landingpage/img3.png";
 import banner4 from "~/assets/images/landingpage/img4.png";
-import banner5 from "~/assets/images/landingpage/img6.png";
+import banner5 from "~/assets/images/landingpage/workhub.png";
 
 import { Link } from "react-router-dom";
 
@@ -25,7 +25,8 @@ function Container() {
         <h4 className="text-[#fafafa] text-[30px] font-bold mb-3">Key Features Of WorkHub</h4>
         <p className="text-muted-foreground  text-[16px]">Discover the powerful tools that make team management seamless.</p>
         <div className="pt-16">
-          <img src ={banner5} alt=""/>
+          <img src={banner5} alt="" className="w-[960px] h-[306px] object-cover"
+          />
           {/*<img src="https://stable.vn/assets/feature-dark-do8tzMEc.svg" alt=""></img>*/}
         </div>
       </div>
