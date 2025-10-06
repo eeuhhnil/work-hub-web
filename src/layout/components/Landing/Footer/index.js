@@ -35,7 +35,7 @@ function Footer() {
         </div>
       </div>
       <p className="text-muted-foreground text-[14px] mt-5">
-        With powerful features tailored to meet the needs of modern teams, WorkHub ensures you can manage tasks, team members, and documents with ease. Choose Stable for an efficient, collaborative,
+        With powerful features tailored to meet the needs of modern teams, WorkHub ensures you can manage tasks, team members, and documents with ease. Choose WorkHub for an efficient, collaborative,
         and organized work environment that helps your team reach its full potential.
       </p>
     </div>
